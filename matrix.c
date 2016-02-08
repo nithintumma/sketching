@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 //TODO: DO WE NEED TO FREE THE ARRAY INSIDE STRUCT
+//TODO: ADD A SETTER FUNCTION FOR MATRIX INDEXING 
 
 // test loat equality 
 #define FLOAT_EQ(a, b)      (fabs(a - b) < 0.00001)
@@ -20,7 +21,6 @@ typedef struct
 
 Matrix init_mat(int rows, int cols)
 {
-    //TODO: REMOVE
     Matrix mat;
     mat.nrows = rows;
     mat.ncols = cols;
@@ -32,8 +32,14 @@ Matrix init_mat(int rows, int cols)
 // row-wise stored
 float get_ind(Matrix* mat, int x, int y)
 {
-    // return float at row x, col y of matrix 
-    return mat->matrix[x * mat->nrows + y];
+    // return float at row x, col y of matrix (0 indexed)
+    return mat->matrix[x * mat->ncols + y];
+}
+
+// set the matrix at x, y to val
+void set_ind(Matrix* mat, int x, int y, float val)
+{
+    mat->matrix[x * mat->ncols + y] = val;
 }
 
 // creates a matrix with given shape initalized to 0.0
@@ -64,11 +70,7 @@ Matrix rand_matrix(int rows, int cols)
     int n = mat.nrows * mat.ncols;
     float rand_num; 
     for (unsigned int i=0; i<n; i++)
-    {
-        rand_num = (float)rand()/(float)(RAND_MAX);
-        printf("%0.2f\n", rand_num); 
-        mat.matrix[i] = rand_num;
-    }
+        mat.matrix[i] = (float)rand()/(float)(RAND_MAX);
     return mat; 
 }
 
@@ -103,7 +105,7 @@ void write_mat(Matrix* mat, char* fname)
 {
     // write as txt
     FILE* fp = fopen(fname, "w"); 
-    fprintf(fp, "%d %d\n", mat->nrows, mat->ncols);
+    fprintf(fp, "# %d %d\n", mat->nrows, mat->ncols);
     for (int x=0; x < mat->nrows; x++)
     {
         for (int y=0; y < mat->ncols; y++)
@@ -125,7 +127,7 @@ Matrix read_mat(char* fname)
     char* buf = malloc(1024 * sizeof(char));
     if (fgets(buf, 1024, fp) != NULL)
     {
-        sscanf(buf, "%d %d", &nrows, &ncols);
+        sscanf(buf, "# %d %d", &nrows, &ncols);
     }
     int n = nrows * ncols; 
     // create the array that will store the Matrix
@@ -140,7 +142,7 @@ Matrix read_mat(char* fname)
         // how do we read in the values from the current line? 
         for (int j=0; j<ncols; j++)
         {
-            sscanf(buf + total_bytes_read, "%f%n", &mat.matrix[i*nrows + j], &bytes_read);
+            sscanf(buf + total_bytes_read, "%f%n", &mat.matrix[i*ncols + j], &bytes_read);
             total_bytes_read += bytes_read;
         }
         i++;
@@ -178,15 +180,49 @@ Matrix mult_scalar(Matrix* mat, float c)
 }
 
 // return c X n matrix transpose of input
-// TODO: FIX THIS FUNCTION 
 Matrix transpose(Matrix* mat)
 {
     Matrix result = init_mat(mat->ncols, mat->nrows);
     // iterate through the rows cols of the original matrix 
     for (int i=0; i<mat->nrows; i++)
         for (int j=0; j<mat->ncols; j++)
-            result.matrix[j*result.nrows + i] = mat->matrix[i*mat->nrows + j];
+            result.matrix[j*result.ncols + i] = mat->matrix[i*mat->ncols + j];
     return result;
+}
+
+// returns new matrix that is the matrix product of the inputs (mat1 * mat2)
+Matrix mult(Matrix* mat1, Matrix* mat2)
+{
+    if (mat1->ncols != mat2->nrows)
+    {
+        printf("Cannot multiply matrices, incompatible shapes");
+        exit(1);
+    }
+    // look up the matrix multiplication function 
+    float sum;
+    Matrix result = init_mat(mat1->nrows, mat2->ncols);
+    for(int i=0; i<mat1->nrows; i++)
+    {
+        for(int j=0; j<mat2->ncols; j++)
+        {
+            for(int k=0; k<mat2->nrows; k++)
+            {
+                sum += get_ind(mat1, i, k) * get_ind(mat2, k, j);
+            }
+            result.matrix[i*result.ncols + j] = sum;
+            sum = 0.0;
+        }
+    }
+    return result;
+}
+
+// returns frobenius norm of the matrix
+float frobenius_norm(Matrix* mat)
+{
+    float sum;
+    for (int i=0; i<mat->ncols * mat->nrows; i++)
+        sum += mat->matrix[i] * mat->matrix[i];
+    return sqrt(sum);
 }
 
 // tests if matrices are elementwise equal using float equality check 
@@ -202,10 +238,25 @@ bool equal(Matrix* mat1, Matrix* mat2)
     return result; 
 }
 
+
 // TODO: MATH FUNCTIONS
-// mutliply two matrices
-// calculate matrix norms? Frobenius
 // compute SVD 
+
+void test_mult(int r)
+{
+    Matrix mat1 = eye(r);
+    Matrix mat2 = mult_scalar(&mat1, 3.0);
+    Matrix mat3 = mult_scalar(&mat1, 4.0);
+    Matrix result = mult(&mat2, &mat3);
+    print_mat(&result);
+}
+
+void test_frob_norm(int r, int c)
+{
+    Matrix mat = eye(r);
+    float norm = frobenius_norm(&mat);
+    printf("%f Norm\n", norm);
+}
 
 void test_read_write()
 {
@@ -248,14 +299,22 @@ void test_equal(int r, int c)
         printf("Failed\n");
 }
 
+void test_mult_scalar(int r, int c)
+{
+    Matrix mat = rand_matrix(r, c);
+    print_mat(&mat);
+    Matrix mat2 = mult_scalar(&mat, 2.0);
+    print_mat(&mat2);
+}
+
 // test what we have so far
 int main(int argc, char* argv[])
 {
-    // create a zero matrix 
-    // what do we do here? 
-    int r = 5;
-    int c = 3;
-    Matrix mat = rand_matrix(r, c);
-    print_mat(&mat);
+    // read in a test_matrix
+    char* mat1_fname = "test_matrices/mat1.txt"
+    char* mat2_fname = "test_matrices/mat2.txt"
+    Matrix mat1 = read_mat(mat1_fname);
+    Matrix mat2 = read_mat(mat2_fname);
+    print_mat(&mat1);
 }
 

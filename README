@@ -1,0 +1,11 @@
+// Describes the random matrices that we use for testing
+mat_1: 500 X 200
+mat_2: 200 X 500
+mat_3: 500 X 200
+
+mat_1_t: mat_1 Transpose
+mat_2_t: mat_2 Transpose
+
+mult_mat_1_2:                mat_1 * mat_2 (matrix multiplication)
+sum_mat_1_2:                 mat_1 + mat_2
+scal_mult_mat_1_3.2.txt:     3.2 * mat_1 (scalar multiplication)
