@@ -3,21 +3,12 @@
 #include <time.h>
 #include <math.h>
 #include <stdbool.h>
+#include "matrix.h"
 
 //TODO: DO WE NEED TO FREE THE ARRAY INSIDE STRUCT
-//TODO: ADD A SETTER FUNCTION FOR MATRIX INDEXING 
 
-// test loat equality 
-#define FLOAT_EQ(a, b)      (fabs(a - b) < 0.00001)
-
-// matrix struct
-typedef struct 
-{
-    unsigned int ncols;
-    unsigned int nrows;
-    // does this need to be a pointer to a pointer? 
-    float* matrix;
-} Matrix;
+// test float equality 
+#define FLOAT_EQ(a, b)      (fabs(a - b) < 0.0001)
 
 Matrix init_mat(int rows, int cols)
 {
@@ -237,144 +228,6 @@ bool equal(Matrix* mat1, Matrix* mat2)
     return result; 
 }
 
-
 // TODO: MATH FUNCTIONS
 // compute SVD 
-
-void old_test_mult(int r)
-{
-    Matrix mat1 = eye(r);
-    Matrix mat2 = mult_scalar(&mat1, 3.0);
-    Matrix mat3 = mult_scalar(&mat1, 4.0);
-    Matrix result = mult(&mat2, &mat3);
-    print_mat(&result);
-}
-
-void test_frob_norm(int r, int c)
-{
-    Matrix mat = eye(r);
-    float norm = frobenius_norm(&mat);
-    printf("%f Norm\n", norm);
-}
-
-void test_read_write()
-{
-    // create random matrix, print it
-    // write it, read it, and print again (verify if equal) 
-    int r = 10;
-    int c = 10; 
-    Matrix random = rand_matrix(r, c);
-    print_mat(&random);
-    write_mat(&random, "out_mat.txt");
-    Matrix random_mat_2  = read_mat("out_mat.txt");
-    print_mat(&random_mat_2);
-}
-
-void old_test_add(int r)
-{
-    // create two identity matrices, add them, and prini it
-    Matrix mat1 = eye(r);
-    Matrix mat2 = eye(r);
-    Matrix result = add(&mat1, &mat2);
-    print_mat(&result);
-}
-
-void old_test_transpose(int r, int c)
-{
-    Matrix mat = rand_matrix(r, c);
-    print_mat(&mat);
-    Matrix mat_t = transpose(&mat);
-    print_mat(&mat_t);
-}
-
-void old_test_equal(int r, int c)
-{
-    Matrix mat = rand_matrix(r, c);
-    Matrix mat1 = eye(r);
-    Matrix mat2 = eye(r);
-    if (equal(&mat, &mat) && equal(&mat1, &mat2))
-        printf("Passed\n");
-    else
-        printf("Failed\n");
-}
-
-void old_test_mult_scalar(int r, int c)
-{
-    Matrix mat = rand_matrix(r, c);
-    print_mat(&mat);
-    Matrix mat2 = mult_scalar(&mat, 2.0);
-    print_mat(&mat2);
-}
-
-void test_add()
-{
-    printf("Testing Add\n");
-    char* mat1_fname = "test_matrices/mat1.txt";
-    char* mat2_fname = "test_matrices/mat3.txt";
-    char* result_fname = "test_matrices/sum_mat1_3.txt";
-    Matrix mat1 = read_mat(mat1_fname);  
-    Matrix mat2 = read_mat(mat2_fname);
-    Matrix true_result = read_mat(result_fname);
-    Matrix result = add(&mat1, &mat2);
-    if (equal(&result, &true_result))
-        printf("Passed\n");
-    else
-        printf("Failed\n");
-}
-
-void test_transpose()
-{
-    printf("Testing Transpose\n"); 
-    char* mat1_fname = "test_matrices/mat1.txt";
-    char* result_fname = "test_matrices/mat1_t.txt";
-    Matrix mat1 = read_mat(mat1_fname);
-    Matrix true_result = read_mat(result_fname);
-    Matrix result = transpose(&mat1); 
-    printf("Result shape: %d %d\n", result.nrows, result.ncols);
-    if (equal(&result, &true_result))
-        printf("Passed\n");
-    else
-        printf("Failed\n");
-}
-
-void test_scalar_mult()
-{
-    printf("Testing Scalar Mult\n");
-    char* mat1_fname = "test_matrices/mat1.txt";
-    Matrix mat1 = read_mat(mat1_fname);
-    Matrix true_result = read_mat(result_fname);
-    char* result_fname = "test_matrices/scal_mult_mat1_3.2.txt";
-    Matrix result = mult_scalar(&mat1, 3.2)
-    printf("Result shape: %d %d\n", result.nrows, result.ncols);
-    if (equal(&result, &true_result))
-        printf("Passed\n");
-    else
-        printf("Failed\n");
-}
-
-//TODO: FIX THIS 
-void test_mult()
-{
-    printf("Testing Matrix Mult\n");
-    char* mat1_fname = "test_matrices/mat1.txt";
-    char* mat2_fname = "test_matrices/mat2.txt";
-    char* result_fname = "test_matrices/mult_mat1_2.txt";
-    Matrix mat1 = read_mat(mat1_fname);  
-    Matrix mat2 = read_mat(mat2_fname);
-    Matrix true_result = read_mat(result_fname);
-    Matrix result = mult(&mat1, &mat2);
-    printf("Result shape: %d %d\n", result.nrows, result.ncols);
-    if (equal(&result, &true_result))
-        printf("Passed\n");
-    else
-        printf("Failed\n");
-}
-
-// test what we have so far
-int main(int argc, char* argv[])
-{
-    test_add();
-    test_transpose();
-    test_mult();
-}
 

@@ -1,0 +1,4 @@
+DONE 1. Make test matrices 
+
+2. Test C code using test matrices
+3. write SVD 
