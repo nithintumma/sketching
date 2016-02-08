@@ -18,6 +18,7 @@ void set_ind(Matrix* mat, int x, int y, float val);
 // matrix IO 
 void print_mat(Matrix* mat);
 void write_mat(Matrix* mat, char* fname);
+Matrix read_mat(char* fname);
 
 // Math functions 
 Matrix add(Matrix* mat1, Matrix* mat2);

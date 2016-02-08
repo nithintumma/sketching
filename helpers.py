@@ -16,7 +16,7 @@ def gen_random_matrix(rows, cols, fname=None):
         return A
     else: 
         # save A to fname row major
-        write_matrix(A, os.path.join(MATRIX_DIR, fname))
+        write_matrix(A, fname)
 
 def write_matrix(A, fname):
     """
@@ -25,11 +25,12 @@ def write_matrix(A, fname):
     """
     r, c = A.shape
     header = "%d %d" %(r, c)
-    np.savetxt(os.path.join(MATRIX_DIR, fname), 
-                    A, delimiter=' ', fmt="%0.4f", header=header)
+    if MATRIX_DIR not in fname:
+        fname = os.path.join(MATRIX_DIR, fname)
+    np.savetxt(fname, A, delimiter=' ', fmt="%0.4f", header=header)
 
 def load_matrix(fname):
-    return np.loadtxt(os.path.join(MATRIX_DIR, fname))
+    if MATRIX_DIR not in fname:
+        fname = os.path.join(MATRIX_DIR, fname)
+    return np.loadtxt(fname)
 
-#TODO: construct large random test matrices and write them
-#TODO: also write their sum, product, transpose, scal_mult, etc. for testing
