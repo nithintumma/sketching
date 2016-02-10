@@ -6,7 +6,7 @@ int main(int argc, char* argv[])
 {
     // read in a matrix
     // generate a matrix 
-    printf();
+    return 0;
 }
 
 // what does the frequent directions algorithm actually 

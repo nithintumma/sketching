@@ -83,40 +83,42 @@ double* svd(Matrix* mat)
                 set_ind(mat, i, i, f-g);
                 //printf("set_ind: %f\n", get_ind(mat, i, i));
                 //TODO: change this to l?
-                printf("s: %f\n", s);
                 for(j=l; j<n; j++)
                 {
                     for(s=0.0,k=i;k<m;k++)
                         s += get_ind(mat, k, i) * get_ind(mat, k, j);
-                    printf("s: %f\n", s);
                     f = s/h;
-                    printf("f: %f\n", f);
                     for (k=i; k<m; k++)
                     {
                         val = f * get_ind(mat, k, i);
                         set_ind(mat, k, j, get_ind(mat, k, j)+val);
                     }
-                    for (k=i; k<m; k++)
-                        set_ind(mat, k, i, get_ind(mat, k, i)*scale);
                 }
+                for (k=i; k<m; k++)
+                    set_ind(mat, k, i, get_ind(mat, k, i)*scale);
 
             }
         }
         w[i] = scale * g;
+        //TODO: why is scale so messed up on the flip? 
         //printf("w[i]: %0.2f, %0.2f\n", scale, g);
         g = s = scale = 0.0;
-        if((i+1 <= m) && (i+1 != n))
+        if((i< m) && (i+1 != n))
         {
             //TODO: change this to l?
             for (k=l; k<n; k++)
                 scale += fabs(get_ind(mat, i, k));
-            if (scale != 0.0)
+            printf("Scale: %0.2f\n", scale);
+            //TODO: change this to float eq comparison?
+            if (scale)
             {
                 //TODO: change this to l?
                 for (k=l; k<n; k++)
                 {
                     set_ind(mat, i, k, get_ind(mat, i, k)/scale);
+                    //printf("Set_ind: %0.2f\n", get_ind(mat, i, k));
                     s += get_ind(mat, i, k) * get_ind(mat, i, k);
+                    printf("s: %0.2f\n", s);
                 }
                 f = get_ind(mat, i, l-1);
                 g = -SIGN(sqrt(s), f);

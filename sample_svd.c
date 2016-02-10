@@ -98,12 +98,9 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
         h = f * g - s;
         a[i][i] = f - g;
         //printf("set_ind: %f\n", a[i][i]);
-        printf("s: %f\n", s);
         for(j=l;j<nCols;j++) {
             for(s=0.0,k=i;k<nRows;k++) s += a[k][i] * a[k][j];
-            printf("s: %f\n", s);
             f = s / h;
-            printf("f: %f\n", f);
             for(k=i;k<nRows;k++) a[k][j] += f * a[k][i];
         }
         for(k=i;k<nRows;k++) a[k][i] *= scale;
@@ -113,21 +110,23 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
     g = s = scale = 0.0;
     if(i < nRows && i != nCols-1) {
       for(k=l;k<nCols;k++) scale += fabs(a[i][k]);
+      printf("Scale: %0.2f\n", scale);
       if(scale)  {
-    for(k=l;k<nCols;k++) {
-      a[i][k] /= scale;
-      s += a[i][k] * a[i][k];
-    }
-    f = a[i][l];
-    g = - SIGN(sqrt(s),f);
-    h = f * g - s;
-    a[i][l] = f - g;
-    for(k=l;k<nCols;k++) rv1[k] = a[i][k] / h;
-    for(j=l;j<nRows;j++) {
-      for(s=0.0,k=l;k<nCols;k++) s += a[j][k] * a[i][k];
-      for(k=l;k<nCols;k++) a[j][k] += s * rv1[k];
-    }
-    for(k=l;k<nCols;k++) a[i][k] *= scale;
+        for(k=l;k<nCols;k++) {
+            a[i][k] /= scale;
+            s += a[i][k] * a[i][k];
+            printf("s: %0.2f\n", s);
+        }
+        f = a[i][l];
+        g = - SIGN(sqrt(s),f);
+        h = f * g - s;
+        a[i][l] = f - g;
+        for(k=l;k<nCols;k++) rv1[k] = a[i][k] / h;
+        for(j=l;j<nRows;j++) {
+            for(s=0.0,k=l;k<nCols;k++) s += a[j][k] * a[i][k];
+            for(k=l;k<nCols;k++) a[j][k] += s * rv1[k];
+        }
+        for(k=l;k<nCols;k++) a[i][k] *= scale;
       }
     }
     anorm = FMAX(anorm, (fabs(w[i]) + fabs(rv1[i])));
