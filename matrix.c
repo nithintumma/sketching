@@ -6,8 +6,9 @@
 #include "matrix.h"
 
 //TODO: DO WE NEED TO FREE THE ARRAY INSIDE STRUCT
+//TODO: USE SET_IND EVERYWHERE SO WE CAN CHANGE ROW/COLUMN
 
-// test float equality 
+// test double equality 
 #define FLOAT_EQ(a, b)      (fabs(a - b) < 0.0001)
 
 Matrix init_mat(int rows, int cols)
@@ -15,20 +16,20 @@ Matrix init_mat(int rows, int cols)
     Matrix mat;
     mat.nrows = rows;
     mat.ncols = cols;
-    mat.matrix = (float*)malloc(rows*cols*sizeof(float));
+    mat.matrix = (double*)malloc(rows*cols*sizeof(double));
     return mat;
 }
 
 // compute array index given r, c
 // row-wise stored
-float get_ind(Matrix* mat, int x, int y)
+double get_ind(Matrix* mat, int x, int y)
 {
-    // return float at row x, col y of matrix (0 indexed)
+    // return double at row x, col y of matrix (0 indexed)
     return mat->matrix[x * mat->ncols + y];
 }
 
 // set the matrix at x, y to val
-void set_ind(Matrix* mat, int x, int y, float val)
+void set_ind(Matrix* mat, int x, int y, double val)
 {
     mat->matrix[x * mat->ncols + y] = val;
 }
@@ -49,7 +50,7 @@ Matrix test_ind(int rows, int cols)
     int n = rows * cols;
     Matrix mat = init_mat(rows, cols); 
     for (unsigned int i=0; i<n; i++)
-        mat.matrix[i] = (float)i;
+        mat.matrix[i] = (double)i;
     return mat; 
 }
 
@@ -59,9 +60,9 @@ Matrix rand_matrix(int rows, int cols)
     srand(time(NULL));
     Matrix mat = init_mat(rows, cols);
     int n = mat.nrows * mat.ncols;
-    float rand_num; 
+    double rand_num; 
     for (unsigned int i=0; i<n; i++)
-        mat.matrix[i] = (float)rand()/(float)(RAND_MAX);
+        mat.matrix[i] = (double)rand()/(double)(RAND_MAX);
     return mat; 
 }
 
@@ -132,7 +133,7 @@ Matrix read_mat(char* fname)
         // how do we read in the values from the current line? 
         for (int j=0; j<ncols; j++)
         {
-            sscanf(buf + total_bytes_read, "%f%n", &mat.matrix[i*ncols + j], &bytes_read);
+            sscanf(buf + total_bytes_read, "%lf%n", &mat.matrix[i*ncols + j], &bytes_read);
             total_bytes_read += bytes_read;
         }
         i++;
@@ -160,7 +161,7 @@ Matrix add(Matrix* mat1, Matrix* mat2)
 }
 
 // returns multiply the matrix by the scalar c 
-Matrix mult_scalar(Matrix* mat, float c)
+Matrix mult_scalar(Matrix* mat, double c)
 {
     Matrix result = init_mat(mat->nrows, mat->ncols);
     int n = result.nrows * result.ncols;
@@ -189,7 +190,7 @@ Matrix mult(Matrix* mat1, Matrix* mat2)
         exit(1);
     }
     // look up the matrix multiplication function 
-    float sum;
+    double sum;
     Matrix result = init_mat(mat1->nrows, mat2->ncols);
     for(int i=0; i<mat1->nrows; i++)
     {
@@ -207,15 +208,15 @@ Matrix mult(Matrix* mat1, Matrix* mat2)
 }
 
 // returns frobenius norm of the matrix
-float frobenius_norm(Matrix* mat)
+double frobenius_norm(Matrix* mat)
 {
-    float sum;
+    double sum;
     for (int i=0; i<mat->ncols * mat->nrows; i++)
         sum += mat->matrix[i] * mat->matrix[i];
     return sqrt(sum);
 }
 
-// tests if matrices are elementwise equal using float equality check 
+// tests if matrices are elementwise equal using double equality check 
 bool equal(Matrix* mat1, Matrix* mat2)
 {
     if (mat1->nrows != mat2->nrows || mat1->ncols != mat2->ncols)
@@ -228,6 +229,27 @@ bool equal(Matrix* mat1, Matrix* mat2)
     return result; 
 }
 
-// TODO: MATH FUNCTIONS
-// compute SVD 
+// Functions to interface with other SVD implementation
+// return 2-d double array from matrix 
+double** convert_mat(Matrix* mat)
+{
+    //double doub_mat[mat->nrows][mat->ncols];
+    double** doub_mat = malloc(sizeof(double*) * mat->nrows);
+    for (int i=0; i<mat->nrows; i++)
+        doub_mat[i] = malloc(sizeof(double) * mat->ncols);
 
+    for (int i=0; i<mat->nrows; i++)
+        for (int j=0; j<mat->ncols; j++)
+            doub_mat[i][j] = (double) get_ind(mat, i, j);
+    return doub_mat;
+}
+
+void print_s_mat(double** mat, int nrows, int ncols)
+{
+    for (int i=0; i<nrows; i++)
+    {
+        for (int j=0; j<ncols; j++)
+            printf("%0.2f ", mat[i][j]);
+        printf("\n");
+    }
+}
