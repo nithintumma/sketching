@@ -9,6 +9,7 @@ typedef struct
 // construct matrix 
 Matrix init_mat(int rows, int cols);
 Matrix zeros(int rows, int cols);
+Matrix diag(double* diagonal, int rows);
 Matrix rand_matrix(int rows, int cols);
 Matrix eye(int rows);
 

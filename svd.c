@@ -14,7 +14,8 @@
 #include <stdbool.h>
 #include "matrix.h"
 
-#define FLOAT_EQ(a, b) (fabs(a - b) < 0.0001)
+#define FLOAT_EQ(a, b) (fabs(a - b) < 0.000001)
+//#define FLOAT_EQ(a, b) (a == b)
 #define SIGN(a, b) ((b) > 0.0 ? fabs(a): -fabs(a))
 #define MAX(a, b)  ((a) > (b) ? (a) : (b))
 #define MIN(a, b)  ((a) < (b) ? (a) : (b))
@@ -30,26 +31,23 @@ double pythag(double a, double b)
         return (abb == 0.0 ? 0.0: abb * sqrt(1.0 + SQR(aba/abb)));
 }
 
-// HOW DO I DEBUG THIS CODE? 
-//return an array of matrices representing the three matrices of the SVD
-double* svd(Matrix* mat)
+/*
+ returns the SVD of matrix mat with U stored in mat
+ singular values in the array w
+ and 
+*/
+int svd(Matrix* mat, double* w, Matrix* V)
 {
-    // n = mat->ncols, m = mat->nrows
-    // 
     double anorm, c, f, g, h, s, scale, x, y, z, val;
     scale = 0.0;
     anorm = 0.0;
     g = 0.0;
-    double *rv1, *w; 
+    double *rv1; 
     int n, m, nm, its; 
     bool flag; 
     n = mat->ncols;
     m = mat->nrows;
     rv1 = (double*) malloc(sizeof(double) * n);
-    // vector that will hold singular values
-    w = (double*) malloc(sizeof(double) * n);
-    // square matrix holding right vectors (ncols**2)
-    Matrix V = zeros(n, n);
     
     //TODO: add checks for NULL pointers everywhere 
     int i, j, k, l, jj;
@@ -58,7 +56,6 @@ double* svd(Matrix* mat)
         //TODO: other says + 2
         l = i+1;
         rv1[i] = scale*g; 
-        printf("Iteration %d: %f\n", i, rv1[i]);
         g = s = scale = 0.0;
         if (i < m)
         {
@@ -70,7 +67,6 @@ double* svd(Matrix* mat)
             }
             if (scale)
             {
-                printf("In if Scale: %f\n", scale);
                 for (k=i;k<m;k++)
                 {
                     set_ind(mat, k, i, get_ind(mat, k, i)/scale);
@@ -108,7 +104,6 @@ double* svd(Matrix* mat)
             //TODO: change this to l?
             for (k=l; k<n; k++)
                 scale += fabs(get_ind(mat, i, k));
-            printf("Scale: %0.2f\n", scale);
             //TODO: change this to float eq comparison?
             if (scale)
             {
@@ -116,68 +111,67 @@ double* svd(Matrix* mat)
                 for (k=l; k<n; k++)
                 {
                     set_ind(mat, i, k, get_ind(mat, i, k)/scale);
-                    //printf("Set_ind: %0.2f\n", get_ind(mat, i, k));
                     s += get_ind(mat, i, k) * get_ind(mat, i, k);
-                    printf("s: %0.2f\n", s);
                 }
-                f = get_ind(mat, i, l-1);
+                f = get_ind(mat, i, l);
                 g = -SIGN(sqrt(s), f);
                 h = f*g - s;
-                set_ind(mat, i, l-1, f-g);
-                for(k=l-1; k<n; k++)
+                set_ind(mat, i, l, f-g);
+                for(k=l; k<n; k++)
                     rv1[k] = get_ind(mat, i, k)/h;
-                for(j=l-1;j<m;j++)
+
+                for(j=l;j<m;j++)
                 {
-                    for(s=0.0,k=l-1;k<n;k++)
+                    for(s=0.0,k=l;k<n;k++)
                         s += get_ind(mat, j, k) * get_ind(mat, i, k);
-                    for(k=l-1; k<n; k++)
+                    for(k=l; k<n; k++)
                     {
                         val = s * rv1[k];
                         set_ind(mat, j, k, get_ind(mat, j, k) + val);
                     }
-                    for(k=l-1; k<n; k++)
-                        set_ind(mat, i, k, get_ind(mat, i, k) * scale);
-
                 }
+                for(k=l; k<n; k++)
+                    set_ind(mat, i, k, get_ind(mat, i, k) * scale);
+
             }
         }
         anorm = MAX(anorm, (fabs(w[i]) + fabs(rv1[i])));
     }
-    printf("First print after the anorm loop\n");
-    print_mat(mat);
+
     // original says 'accumulation of right hand transformations'
-    for(i=n-1 ;i>=0; i--)
+    for(i=n-1; i>=0; i--)
     {
         if(i < n-1)
         {
-            if(g != 0.0)
+            if(g)
             {
                 for (j=l; j<n; j++)
                 {
                     val = (get_ind(mat, i, j)/get_ind(mat, i, l))/g;
-                    set_ind(&V, j, i, val);
+                    set_ind(V, j, i, val);
                 }
                 for (j=l; j<n; j++)
                 {
                     for (s=0.0, k=l; k<n;k++)
-                        s+= get_ind(mat, i, k) * get_ind(&V, k, j);
+                        s+= get_ind(mat, i, k) * get_ind(V, k, j);
                     for (k=l; k<n;k++)
                     {
-                        val = s * get_ind(&V, k, i);
-                        set_ind(&V, k, j, get_ind(&V, k, j) + val); 
+                        val = s * get_ind(V, k, i);
+                        set_ind(V, k, j, get_ind(V, k, j) + val); 
                     }
                 }
             }
             for (j=l; j<n; j++)
             {
-                set_ind(&V, i, j, 0.0);
-                set_ind(&V, j, i, 0.0);
+                set_ind(V, i, j, 0.0);
+                set_ind(V, j, i, 0.0);
             }
         }
-        set_ind(&V, i, i, 1.0);
+        set_ind(V, i, i, 1.0);
         g = rv1[i];
         l = i;
     }
+    // SEEMS GOOD TO HERE
 
     // original says 'accumulation of left hand transformations'
     for (i=MIN(m, n)-1; i>=0; i--)
@@ -186,12 +180,12 @@ double* svd(Matrix* mat)
         g = w[i];
         for (j=l; j<n; j++)
             set_ind(mat, i, j, 0.0);
-        if (g != 0.0)
+        if (g)
         {
             g = 1.0/g;
             for (j=l; j<n; j++)
             {
-                for (s=0.0, k=l; k<n;k++)
+                for (s=0.0, k=l; k<m;k++)
                     s += get_ind(mat, k, i) * get_ind(mat, k, j); 
                 f = (s/get_ind(mat, i, i)) * g;
                 for (k=i; k<m; k++)
@@ -210,7 +204,6 @@ double* svd(Matrix* mat)
         }
         set_ind(mat, i, i, get_ind(mat, i, i) + 1);
     }
-
     // original says 'diag. of the bidiagonal form'
     for (k=n-1; k>=0; k--)
     {
@@ -222,13 +215,23 @@ double* svd(Matrix* mat)
                 nm = l-1;
                 //sample has the check on rv1[l] here
                 // we had on w[nm]
-                if (l==0 || (FLOAT_EQ(fabs(rv1[l]), 0.0)))
+                //printf("L: %d, RV: %0.2f, W: %0.2f\n", l, rv1[l], w[nm]);
+                if (FLOAT_EQ((fabs(rv1[l]) + anorm), anorm))
+                //if(fabs(rv1[l] + anorm) == anorm)
+                //if (l==0 || (FLOAT_EQ(fabs(rv1[l]), 0.0)))
                {
+                    //printf("Terminating, %f %f\n", anorm, rv1[l]);
+                    //printf("Flag OFF\n");
                     flag = 0;
                     break;
                 }
-                if (FLOAT_EQ(fabs(w[nm]), 0.0))
+                if (FLOAT_EQ((fabs(w[nm]) + anorm), anorm))
+                //if((fabs(w[nm]) + anorm) == anorm)
+                //if (FLOAT_EQ(fabs(w[nm]), 0.0))
+                {
+                    //printf("Terminating 2\n");
                     break;
+                }
             }
             if (flag)
             {
@@ -239,8 +242,13 @@ double* svd(Matrix* mat)
                     f = s * rv1[i];
                     rv1[i] = c * rv1[i];
                     //TODO: everyone else has fabs + anorm == anorm
-                    if (FLOAT_EQ(fabs(f), 0.0))
+                    if (FLOAT_EQ((fabs(f) + anorm), anorm))
+                    //if ((fabs(f) + anorm) == anorm)
+                    //if (FLOAT_EQ(fabs(f), 0.0))
+                    {
+                        //printf("Terminating 3\n");
                         break;
+                    }
                     g = w[i];
                     h = pythag(f, g);
                     w[i] = h;
@@ -257,33 +265,42 @@ double* svd(Matrix* mat)
                 }
             }
             z = w[k];
+            //printf("Z: %0.2f\n", z);
             if (l == k)
             {
+                //printf("L is equal to k\n");
                 if ( z < 0.0)
                 {
                     w[k] = -z;
                     for (j=0; j<n; j++)
-                        set_ind(&V, j, k, -get_ind(&V, j, k));
+                        set_ind(V, j, k, -get_ind(V, j, k));
                 }
                 break;
             }
             if (its == 29)
             {
                 printf("Hasn't converged after 30 iterations\n");
-                printf("%0.2f\n", fabs(f));
-                exit(1);
+                //printf("%0.2f\n", fabs(f));
             }
+            // TODO: figure out the singular values 
             x = w[l];
+            //for (int ff=0; ff<m; ff++)
+            //    printf(" %0.2f ", w[ff]);
+            //printf("\nL: %d\n", l);
             nm = k-1;
             y = w[nm];
             g = rv1[nm];
             h = rv1[k];
-            f = ((y-z) * (y-z) + (g-h) * (g-h))/(2.0 * h * y);
+            f = ((y-z) * (y+z) + (g-h) * (g+h))/(2.0 * h * y);
             g = pythag(f, 1.0);
-            f = ((x-z) * (x-z) + h * ((y/(f + SIGN(g, f))) - h)) / x;
+            f = ((x-z) * (x+z) + h * ((y/(f + SIGN(g, f))) - h)) / x;
             c = s = 1.0;
+            //printf("starting vals: %0.2f, %0.2f, %0.2f, %0.2f", f, g, h, y);
+            //printf("X: %0.2f, Y: %0.2f, Z: %0.2f\n", x, y, z);
+            //printf("F: %0.2f\n", f);
             for (j=l; j <=nm; j++)
             {
+
                 i = j+1;
                 g = rv1[i];
                 y = w[i];
@@ -296,13 +313,14 @@ double* svd(Matrix* mat)
                 f = x*c + g*s;
                 g = g*c - x*s;
                 h = y*s;
-                y = y*c;
+                y *= c;
+                //printf("Some vals: %0.2f %0.2f %0.2f %0.2f\n", z, s, c, y);
                 for (jj = 0; jj<n; jj++)
                 {
-                    x = get_ind(&V, jj, j);
-                    z = get_ind(&V, jj, i);
-                    set_ind(&V, jj, j, x*c + z*s);
-                    set_ind(&V, jj, i, z*c - x*s);
+                    x = get_ind(V, jj, j);
+                    z = get_ind(V, jj, i);
+                    set_ind(V, jj, j, x*c + z*s);
+                    set_ind(V, jj, i, z*c - x*s);
                 }
                 z = pythag(f, h);
                 w[j] = z;
@@ -314,11 +332,13 @@ double* svd(Matrix* mat)
                 }
                 f = c*g + s*y;
                 x = c*y - s*g;
+
+
                 for (jj=0; jj<m; jj++)
                 {
                     y = get_ind(mat, jj, j);
                     z = get_ind(mat, jj, i);
-                    set_ind(mat, jj, j, y*c - z*s);
+                    set_ind(mat, jj, j, y*c + z*s);
                     set_ind(mat, jj, i, z*c - y*s);
                 }
             }
@@ -328,20 +348,98 @@ double* svd(Matrix* mat)
         }
     }
     // TODO: cleanup (free arrays etc.)
-    return w;
+    return 0;
+}
+
+/*
+Reorder the columns of U and V be decreasing magnitude of singular values in w
+*/
+int reorder(Matrix* U, double* w, Matrix* V)
+{
+    int i, j, k, s, inc;
+    inc = 1;
+    double sw;
+    int n = U->ncols;
+    int m = U->nrows;
+    double* su = malloc(sizeof(double) * m);
+    double* sv = malloc(sizeof(double) * n);
+    do 
+    {
+        inc *= 3;
+        inc++;
+    } while(inc <= n);
+    
+    do
+    {
+        inc /= 3;
+        for(i = inc; i<n; i++)
+        {
+            sw = w[i];
+            for (k=0; k<m; k++)
+                su[k] = get_ind(U, k, i);
+            for (k=0; k<n; k++)
+                sv[k] = get_ind(V, k, i);
+            j = i;
+            while(w[j - inc] < sw)
+            {
+                w[j] = w[j - inc];
+                for(k = 0; k<m; k++)
+                    set_ind(U, k, j, get_ind(U, k, j-inc));
+                for (k = 0; k<n; k++)
+                    set_ind(V, k, j, get_ind(V, k, j-inc));
+                j -= inc;
+                if (j < inc)
+                    break;
+            }
+            w[j] = sw;
+            for(k=0; k<m; k++)
+                set_ind(U, k, j, su[k]);
+            for(k=0; k<n; k++)
+                set_ind(V, k, j, sv[k]);
+        }
+
+    } while(inc > 1);
+    //TODO: flip signs? do we need this? 
+    return 0;
 }
 
 
-//TODO: test other implementation of SVD 
+
+// something's wrong
+
+int test(char* fname)
+{
+    Matrix mat = read_mat(fname);
+    double* w = (double*) malloc(sizeof(double) * mat.ncols);
+    printf("Input Matrix\n");
+    print_mat(&mat);
+    Matrix V = zeros(mat.ncols, mat.ncols);
+    if (svd(&mat, w, &V) == 0)
+    {
+        if (reorder(&mat, w, &V) == 0)
+        {
+            printf("Singular values\n");
+            for (int i=0; i<mat.ncols; i++)
+                printf("%0.4f ", w[i]);
+            printf("\nLeft Singular Vectors\n");
+            print_mat(&mat);
+            return 0;
+        }
+    }
+    return 1;
+}
+
 int main(int argc, char* argv[])
 {
     // read in random matrix 
     // compute svd
-    char* fname = "test_matrices/small_svd_mat.txt";
-    Matrix mat = read_mat(fname);
-    print_mat(&mat);
-    double* s_vals = svd(&mat);
-    for (int i = 0; i<mat.ncols; i++)
-        printf("%f\n", s_vals[i]);
-    return 0;
+    char* fname = "test_matrices/large_svd_mat.txt";
+    if (test(fname) == 0)
+    {
+        printf("Success\n");
+        return 0;
+    }
+    // test did not return 0
+    printf("Failed\n");
+    return 1;
 }

@@ -26,7 +26,7 @@ void printMatrix(double **a, int rows, int cols) {
 
   for(i=0;i<rows;i++) {
     for(j=0;j<cols;j++) {
-      printf("%.4lf ",a[i][j]);
+      printf("%.2lf ",a[i][j]);
     }
     printf("\n");
   }
@@ -77,7 +77,6 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
   for(i=0;i<nCols;i++) {
     l = i+1;
     rv1[i] = scale*g;
-    printf("Iteration %d: %f\n", i, rv1[i]);
     g = s = scale = 0.0;
     if(i < nRows) {
       for(k=i;k<nRows;k++) 
@@ -86,7 +85,6 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
           //printf("Sub-iter %d %d: %f\n", i, k, scale);
       }
       if(scale) {
-          printf("In if Scale: %f\n", scale);
         for(k=i;k<nRows;k++) 
         {
             a[k][i] /= scale;
@@ -110,12 +108,10 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
     g = s = scale = 0.0;
     if(i < nRows && i != nCols-1) {
       for(k=l;k<nCols;k++) scale += fabs(a[i][k]);
-      printf("Scale: %0.2f\n", scale);
       if(scale)  {
         for(k=l;k<nCols;k++) {
             a[i][k] /= scale;
             s += a[i][k] * a[i][k];
-            printf("s: %0.2f\n", s);
         }
         f = a[i][l];
         g = - SIGN(sqrt(s),f);
@@ -130,22 +126,22 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
       }
     }
     anorm = FMAX(anorm, (fabs(w[i]) + fabs(rv1[i])));
-
     printf(".");
     fflush(stdout);
   }
-  printf("\nFirst Print after anorm loop\n");
-  printMatrix(a, nRows, nCols);
 
   for(i=nCols-1;i>=0;i--) {
     if(i < nCols-1) {
       if(g) {
-    for(j=l;j<nCols;j++)
-      v[j][i] = (a[i][j] / a[i][l]) / g;
-    for(j=l;j<nCols;j++) {
-      for(s=0.0,k=l;k<nCols;k++) s += a[i][k] * v[k][j];
-      for(k=l;k<nCols;k++) v[k][j] += s * v[k][i];
-    }
+        for(j=l;j<nCols;j++)
+          v[j][i] = (a[i][j] / a[i][l]) / g;
+        for(j=l;j<nCols;j++) {
+          for(s=0.0,k=l;k<nCols;k++) s += a[i][k] * v[k][j];
+          for(k=l;k<nCols;k++)
+            {
+              v[k][j] += s * v[k][i];
+            }
+        }
       }
       for(j=l;j<nCols;j++) v[i][j] = v[j][i] = 0.0;
     }
@@ -159,15 +155,16 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
   for(i=IMIN(nRows,nCols) - 1;i >= 0;i--) {
     l = i + 1;
     g = w[i];
+
     for(j=l;j<nCols;j++) a[i][j] = 0.0;
     if(g) {
-      g = 1.0 / g;
-      for(j=l;j<nCols;j++) {
-    for(s=0.0,k=l;k<nRows;k++) s += a[k][i] * a[k][j];
-    f = (s / a[i][i]) * g;
-    for(k=i;k<nRows;k++) a[k][j] += f * a[k][i];
-      }
-      for(j=i;j<nRows;j++) a[j][i] *= g;
+        g = 1.0 / g;
+        for(j=l;j<nCols;j++) {
+          for(s=0.0,k=l;k<nRows;k++) s += a[k][i] * a[k][j];
+          f = (s / a[i][i]) * g;
+          for(k=i;k<nRows;k++) a[k][j] += f * a[k][i];
+        }
+        for(j=i;j<nRows;j++) a[j][i] *= g;
     }
     else
       for(j=i;j<nRows;j++) a[j][i] = 0.0;
@@ -178,56 +175,66 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
 
   for(k=nCols-1;k>=0;k--) {
     for(its=0;its<30;its++) {
+
       flag = 1;
       for(l=k;l>=0;l--) {
-    nm = l-1;
-    if((fabs(rv1[l]) + anorm) == anorm) {
-        printf("Terminating, %f %f\n", anorm, rv1[l]);
-      flag =  0;
-      break;
-    }
-    if((fabs(w[nm]) + anorm) == anorm) 
-    {
-        printf("Terminating 2, %f %f\n", anorm, w[nm]);
-        break;
-    }
+          nm = l-1;
+          //printf("L: %d, RV: %0.2f, W: %0.2f\n", l, rv1[l], w[nm]);
+          if((fabs(rv1[l]) + anorm) == anorm) {
+            //printf("Terminating, %f %f\n", anorm, rv1[l]);
+            //printf("Flag OFF\n");
+            flag =  0;
+            break;
+          }
+          if((fabs(w[nm]) + anorm) == anorm) 
+          {
+              //printf("Terminating 2, %f %f\n", anorm, w[nm]);
+              break;
+          }
       }
       if(flag) {
-    c = 0.0;
-    s = 1.0;
-    for(i=l;i<=k;i++) {
-      f = s * rv1[i];
-      rv1[i] = c * rv1[i];
-      if((fabs(f) + anorm) == anorm) 
-      {
-          printf("Terminating 3, %f %f\n", anorm, f);
-          break;
-      }
-      g = w[i];
-      h = pythag(f,g);
-      w[i] = h;
-      h = 1.0 / h;
-      c = g * h;
-      s = -f * h;
-      for(j=0;j<nRows;j++) {
-        y = a[j][nm];
-        z = a[j][i];
-        a[j][nm] = y * c + z * s;
-        a[j][i] = z * c - y * s;
-      }
-    }
+        c = 0.0;
+        s = 1.0;
+        for(i=l;i<=k;i++) {
+          f = s * rv1[i];
+          rv1[i] = c * rv1[i];
+          if((fabs(f) + anorm) == anorm) 
+          {
+              //printf("Terminating 3, %f %f\n", anorm, f);
+              break;
+          }
+          g = w[i];
+          h = pythag(f,g);
+          w[i] = h;
+          h = 1.0 / h;
+          c = g * h;
+          s = -f * h;
+          for(j=0;j<nRows;j++) {
+            y = a[j][nm];
+            z = a[j][i];
+            a[j][nm] = y * c + z * s;
+            a[j][i] = z * c - y * s;
+          }
+        }
       }
       z = w[k];
+      //printf("Z: %0.2f\n", z);
       if(l == k) {
-    if(z < 0.0) {
-      w[k] = -z;
-      for(j=0;j<nCols;j++) v[j][k] = -v[j][k];
-    }
-        printf("Terminating l=k, %f\n", anorm);
-    break;
+        if(z < 0.0) {
+          w[k] = -z;
+          for(j=0;j<nCols;j++) v[j][k] = -v[j][k];
+        }
+        //printf("Terminating l=k, %f\n", anorm);
+        break;
       }
+      
+
       if(its == 29) printf("no convergence in 30 svdcmp iterations\n");
       x = w[l];
+
+      // maybe we should print out w at this moment and compare them? 
+     // printVector(w, nRows);
+      //printf("L: %d\n", l);
       nm = k-1;
       y = w[nm];
       g = rv1[nm];
@@ -236,61 +243,120 @@ int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {
       g = pythag(f,1.0);
       f = ((x - z) * (x + z) + h * ((y / (f + SIGN(g,f))) - h)) / x;
       c = s = 1.0;
+      //printf("starting vals: %0.2f, %0.2f, %0.2f, %0.2f", f, g, h, y);
+      //printf("X: %0.2f, Y: %0.2f, Z: %0.2f\n", x, y, z);
+      //printf("F: %0.2f\n", f);
       for(j=l;j<=nm;j++) {
-    i = j+1;
-    g = rv1[i];
-    y = w[i];
-    h = s * g;
-    g = c * g;
-    z = pythag(f,h);
-    rv1[j] = z;
-    c = f/z;
-    s = h/z;
-    f = x * c + g * s;
-    g = g * c - x * s;
-    h = y * s;
-    y *= c;
-    for(jj=0;jj<nCols;jj++) {
-      x = v[jj][j];
-      z = v[jj][i];
-      v[jj][j] = x * c + z * s;
-      v[jj][i] = z * c - x * s;
-    }
-    z = pythag(f,h);
-    w[j] = z;
-    if(z) {
-      z = 1.0 / z;
-      c = f * z;
-      s = h * z;
-    }
-    f = c * g + s * y;
-    x = c * y - s * g;
-    for(jj=0;jj < nRows;jj++) {
-      y = a[jj][j];
-      z = a[jj][i];
-      a[jj][j] = y * c + z * s;
-      a[jj][i] = z * c - y * s;
-    }
+          i = j+1;
+          g = rv1[i];
+          y = w[i];
+          h = s * g;
+          g = c * g;
+          z = pythag(f,h);
+          rv1[j] = z;
+          c = f/z;
+          s = h/z;
+          f = x * c + g * s;
+          g = g * c - x * s;
+          h = y * s;
+          y *= c;
+          //printf("Some vals: %0.2f %0.2f %0.2f %0.2f\n", z, s, c, y);
+          for(jj=0;jj<nCols;jj++) {
+            x = v[jj][j];
+            z = v[jj][i];
+            v[jj][j] = x * c + z * s;
+            v[jj][i] = z * c - x * s;
+          }
+
+          z = pythag(f,h);
+          w[j] = z;
+          if(z) {
+            z = 1.0 / z;
+            c = f * z;
+            s = h * z;
+          }
+          f = c * g + s * y;
+          x = c * y - s * g;
+
+
+          for(jj=0;jj < nRows;jj++) {
+            y = a[jj][j];
+            z = a[jj][i];
+            a[jj][j] = y * c + z * s;
+            a[jj][i] = z * c - y * s;
+          }
       }
       rv1[l] = 0.0;
       rv1[k] = f;
       w[k] = x;
+      // end of its for loop
     }
+
+
     printf(".");
     fflush(stdout);
   }
   printf("\n");
   
   free(rv1);
-  
   return(0);
+}
+
+
+int reorder(double** U, double* w, double** V, int n, int m)
+{
+    int i, j, k, s, inc;
+    inc = 1;
+    double sw;
+    double* su = malloc(sizeof(double) * m);
+    double* sv = malloc(sizeof(double) * n);
+    do 
+    {
+        inc *= 3;
+        inc++;
+    } while(inc <= n);
+    do
+    {
+        inc /= 3;
+        for(i = inc; i<n; i++)
+        {
+            sw = w[i];
+            for (k=0; k<m; k++)
+              su[k] = U[k][i];
+            for (k=0; k<n; k++)
+              sv[k] = V[k][i];
+            j = i;
+            while(w[j - inc] < sw)
+            {
+                w[j] = w[j - inc];
+                for(k = 0; k<m; k++)
+                  U[k][j] = U[k][j-inc];
+                
+                for (k = 0; k<n; k++)
+                    V[k][j] = V[k][j-inc];
+                j -= inc;
+                if (j < inc)
+                    break;
+            }
+            w[j] = sw;
+            for(k=0; k<m; k++)
+                U[k][j] = su[k];
+            for(k=0; k<n; k++)
+                V[k][j] = sv[k]; 
+        }
+
+    } while(inc > 1);
+    //TODO: flip signs? do we need this? 
+    return 0;
 }
 
 int main(int argc, char* argv[])
 {
     // read in a matrix. convert it, then stuff
-    char* fname = "test_matrices/small_svd_mat.txt";
+    char* fname = "test_matrices/med_svd_mat.txt";
     Matrix A = read_mat(fname);
+    int n = A.ncols;
+    int m = A.nrows;
     print_mat(&A);
     double** a = convert_mat(&A);
     // allocate output arrays
@@ -300,11 +366,14 @@ int main(int argc, char* argv[])
         v[i] = malloc(sizeof(double) * A.ncols);
     if (svdcmp(a, A.nrows, A.ncols, w, v) == 0)
     {
-        // print out the singular values
-        printf("Singular values\n");
-        printVector(w, A.nrows);
-        printMatrix(a, A.nrows, A.ncols);
-        return 0;
+        if (reorder(a, w, v, n, m) == 0)
+        {
+          printf("Singular values\n");
+          printVector(w, A.nrows);
+          printf("Left Vectors (U)\n");
+          printMatrix(a, A.nrows, A.ncols);
+          return 0;
+        }
     }
     else
         return 1;

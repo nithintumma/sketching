@@ -34,6 +34,15 @@ void set_ind(Matrix* mat, int x, int y, double val)
     mat->matrix[x * mat->ncols + y] = val;
 }
 
+// construct a diagonal matrix with input array as diagonal
+Matrix diag(double* diagonal, int rows)
+{
+    Matrix mat = zeros(rows, rows);
+    for (int i =0; i<rows; i++)
+        set_ind(&mat, i, i, diagonal[i]);
+    return mat;
+}
+
 // creates a matrix with given shape initalized to 0.0
 Matrix zeros(int rows, int cols) 
 { 
@@ -90,6 +99,7 @@ void print_mat(Matrix* mat)
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 // Need a function to write matrix to file 
