@@ -1,0 +1,74 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+FLOAT_EQ	matrix.c	/^#define FLOAT_EQ(/;"	d	file:
+FLOAT_EQ	sketch.c	/^#define FLOAT_EQ(/;"	d	file:
+FLOAT_EQ	svd.c	/^#define FLOAT_EQ(/;"	d	file:
+FMAX	sample_svd.c	/^#define FMAX(/;"	d	file:
+IMIN	sample_svd.c	/^#define IMIN(/;"	d	file:
+MAX	svd.c	/^#define MAX(/;"	d	file:
+MIN	svd.c	/^#define MIN(/;"	d	file:
+SIGN	sample_svd.c	/^#define SIGN(/;"	d	file:
+SIGN	svd.c	/^#define SIGN(/;"	d	file:
+SQR	sample_svd.c	/^#define SQR(/;"	d	file:
+SQR	svd.c	/^#define SQR(/;"	d	file:
+SQUARE	sketch.c	/^#define SQUARE(/;"	d	file:
+add	matrix.c	/^Matrix add(Matrix* mat1, Matrix* mat2)$/;"	f
+convert_mat	matrix.c	/^double** convert_mat(Matrix* mat)$/;"	f
+diag	matrix.c	/^Matrix diag(double* diagonal, int rows)$/;"	f
+equal	matrix.c	/^bool equal(Matrix* mat1, Matrix* mat2)$/;"	f
+eye	matrix.c	/^Matrix eye(int rows)$/;"	f
+fd_sketch	fd.c	/^int * fd_sketch(float* mat, int l)$/;"	f
+fd_sketch	sketch.c	/^Matrix fd_sketch(Matrix* mat, int l)$/;"	f
+get_ind	matrix.c	/^double get_ind(Matrix* mat, int x, int y)$/;"	f
+iminarg1	sample_svd.c	/^static int iminarg1,iminarg2;$/;"	v	file:
+iminarg2	sample_svd.c	/^static int iminarg1,iminarg2;$/;"	v	file:
+init_mat	matrix.c	/^Matrix init_mat(int rows, int cols)$/;"	f
+l2_norm	svd.c	/^double l2_norm(Matrix* mat)$/;"	f
+main	fd.c	/^int main(int argc, char* argv[])$/;"	f
+main	sample_svd.c	/^int main(int argc, char* argv[])$/;"	f
+main	sketch.c	/^int main(int argc, char* argv[])$/;"	f
+main	test.c	/^int main(int argc, char* argv[])$/;"	f
+maxarg1	sample_svd.c	/^static double maxarg1,maxarg2;$/;"	v	file:
+maxarg2	sample_svd.c	/^static double maxarg1,maxarg2;$/;"	v	file:
+mult	matrix.c	/^Matrix mult(Matrix* mat1, Matrix* mat2)$/;"	f
+mult_scalar	matrix.c	/^Matrix mult_scalar(Matrix* mat, double c)$/;"	f
+old_test_add	test.c	/^void old_test_add(int r)$/;"	f
+old_test_equal	test.c	/^void old_test_equal(int r, int c)$/;"	f
+old_test_mult	test.c	/^void old_test_mult(int r)$/;"	f
+old_test_mult_scalar	test.c	/^void old_test_mult_scalar(int r, int c)$/;"	f
+old_test_transpose	test.c	/^void old_test_transpose(int r, int c)$/;"	f
+printMatrix	sample_svd.c	/^void printMatrix(double **a, int rows, int cols) {$/;"	f
+printVector	sample_svd.c	/^void printVector(double *v, int size) {$/;"	f
+print_mat	matrix.c	/^void print_mat(Matrix* mat)$/;"	f
+print_s_mat	matrix.c	/^void print_s_mat(double** mat, int nrows, int ncols)$/;"	f
+pythag	sample_svd.c	/^double pythag(double a, double b) {$/;"	f
+pythag	svd.c	/^double pythag(double a, double b)$/;"	f
+rand_matrix	matrix.c	/^Matrix rand_matrix(int rows, int cols)$/;"	f
+read_mat	matrix.c	/^Matrix read_mat(char* fname)$/;"	f
+recon_error	sketch.c	/^double recon_error(Matrix* mat, Matrix* sketch)$/;"	f
+reorder	sample_svd.c	/^int reorder(double** U, double* w, double** V, int n, int m)$/;"	f
+reorder	svd.c	/^int reorder(Matrix* U, double* w, Matrix* V)$/;"	f
+set_ind	matrix.c	/^void set_ind(Matrix* mat, int x, int y, double val)$/;"	f
+sq_frobenius_norm	matrix.c	/^double sq_frobenius_norm(Matrix* mat)$/;"	f
+sqrarg	sample_svd.c	/^static double sqrarg;$/;"	v	file:
+subtract	matrix.c	/^Matrix subtract(Matrix* mat1, Matrix* mat2)$/;"	f
+svd	svd.c	/^int svd(Matrix* mat, double* w, Matrix* V)$/;"	f
+svdcmp	sample_svd.c	/^int svdcmp(double **a, int nRows, int nCols, double *w, double **v) {$/;"	f
+test	sketch.c	/^int test(char* fname, int l)$/;"	f
+test	svd.c	/^int test(char* fname)$/;"	f
+test_add	test.c	/^void test_add()$/;"	f
+test_frob_norm	test.c	/^void test_frob_norm(int r, int c)$/;"	f
+test_frobenius_norm	test.c	/^void test_frobenius_norm()$/;"	f
+test_ind	matrix.c	/^Matrix test_ind(int rows, int cols)$/;"	f
+test_mult	test.c	/^void test_mult()$/;"	f
+test_read_write	test.c	/^void test_read_write()$/;"	f
+test_scalar_mult	test.c	/^void test_scalar_mult()$/;"	f
+test_transpose	test.c	/^void test_transpose()$/;"	f
+transpose	matrix.c	/^Matrix transpose(Matrix* mat)$/;"	f
+write_mat	matrix.c	/^void write_mat(Matrix* mat, char* fname)$/;"	f
+zero_row	sketch.c	/^int zero_row(Matrix* mat)$/;"	f
+zeros	matrix.c	/^Matrix zeros(int rows, int cols) $/;"	f

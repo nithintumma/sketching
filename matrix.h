@@ -1,5 +1,5 @@
 // currently store row-wise, but can change 
-typedef struct 
+typedef struct Matrix
 {
     unsigned int ncols;
     unsigned int nrows;
@@ -23,10 +23,11 @@ Matrix read_mat(char* fname);
 
 // Math functions 
 Matrix add(Matrix* mat1, Matrix* mat2);
+Matrix subtract(Matrix* mat1, Matrix* mat2);
 Matrix mult_scalar(Matrix* mat, double c);
 Matrix transpose(Matrix* mat);
 Matrix mult(Matrix* mat1, Matrix* mat2);
-double frobenius_norm(Matrix* mat);
+double sq_frobenius_norm(Matrix* mat);
 bool equal(Matrix* mat1, Matrix* mat2);
 
 // interface with sample_svd matrix format

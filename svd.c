@@ -2,9 +2,6 @@
  * http://numerical.recipes/webnotes/nr3web2.pdf
  */
 
-//TODO: compare this implementation to svd.c in outer dir
-//TODO: why are we returning nans and infs? 
-//TODO: change doubles to doubles 
 //TODO: comapre this implementation to LAPACK Fortran implementation 
 
 #include <time.h>
@@ -12,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "svd.h"
 #include "matrix.h"
 
 #define FLOAT_EQ(a, b) (fabs(a - b) < 0.000001)
@@ -347,8 +345,12 @@ int svd(Matrix* mat, double* w, Matrix* V)
             w[k] = x;
         }
     }
+    // reorder the matrices 
+    if(reorder(mat, w, V) == 0)
+        return 0;
+    else
+        return 1;
     // TODO: cleanup (free arrays etc.)
-    return 0;
 }
 
 /*
@@ -403,9 +405,19 @@ int reorder(Matrix* U, double* w, Matrix* V)
     return 0;
 }
 
-
-
-// something's wrong
+double l2_norm(Matrix* mat)
+{
+    // largest singular value of the matrix
+    double* svals = malloc(sizeof(double) * mat->ncols); 
+    Matrix V = zeros(mat->ncols, mat->ncols);
+    if (svd(mat, svals, &V) == 0)
+        return svals[0];
+    else
+    {
+        printf("SVD failed\n");
+        exit(1);
+    }
+}
 
 int test(char* fname)
 {
@@ -416,19 +428,17 @@ int test(char* fname)
     Matrix V = zeros(mat.ncols, mat.ncols);
     if (svd(&mat, w, &V) == 0)
     {
-        if (reorder(&mat, w, &V) == 0)
-        {
-            printf("Singular values\n");
-            for (int i=0; i<mat.ncols; i++)
-                printf("%0.4f ", w[i]);
-            printf("\nLeft Singular Vectors\n");
-            print_mat(&mat);
-            return 0;
-        }
+        printf("Singular values\n");
+        for (int i=0; i<mat.ncols; i++)
+            printf("%0.4f ", w[i]);
+        printf("\nLeft Singular Vectors\n");
+        print_mat(&mat);
+        return 0;
     }
     return 1;
 }
 
+/*
 int main(int argc, char* argv[])
 {
     // read in random matrix 
@@ -443,3 +453,4 @@ int main(int argc, char* argv[])
     printf("Failed\n");
     return 1;
 }
+*/

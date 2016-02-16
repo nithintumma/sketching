@@ -154,7 +154,7 @@ Matrix read_mat(char* fname)
     fclose(fp);
     return mat; 
 }
-
+//TODO: change this to get/set?
 // add two matrices, return new matrix
 Matrix add(Matrix* mat1, Matrix* mat2)
 {
@@ -170,6 +170,20 @@ Matrix add(Matrix* mat1, Matrix* mat2)
     return result;
 }
 
+// subtract two matrices, return new matrix
+Matrix subtract(Matrix* mat1, Matrix* mat2)
+{
+    if (mat1->nrows != mat2->nrows && mat1->ncols != mat2->ncols)
+    {
+        printf("Cannot subtract matrices without the same shape");
+        exit(1);
+    }
+    Matrix result = init_mat(mat1->nrows, mat1->ncols);
+    int n = result.nrows * result.ncols;
+    for (int i=0; i<n; i++)
+        result.matrix[i] = mat1->matrix[i] - mat2->matrix[i];
+    return result;
+}
 // returns multiply the matrix by the scalar c 
 Matrix mult_scalar(Matrix* mat, double c)
 {
@@ -210,21 +224,22 @@ Matrix mult(Matrix* mat1, Matrix* mat2)
             {
                 sum += get_ind(mat1, i, k) * get_ind(mat2, k, j);
             }
-            result.matrix[i*result.ncols + j] = sum;
+            set_ind(&result, i, j, sum); 
             sum = 0.0;
         }
     }
     return result;
 }
 
-// returns frobenius norm of the matrix
-double frobenius_norm(Matrix* mat)
+// returns squared frobenius norm of the matrix
+double sq_frobenius_norm(Matrix* mat)
 {
-    double sum;
+    double sum = 0.0;
     for (int i=0; i<mat->ncols * mat->nrows; i++)
         sum += mat->matrix[i] * mat->matrix[i];
-    return sqrt(sum);
+    return sum;
 }
+
 
 // tests if matrices are elementwise equal using double equality check 
 bool equal(Matrix* mat1, Matrix* mat2)
