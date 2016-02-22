@@ -128,7 +128,7 @@ Matrix truncate_cols_2(Matrix* mat, int ncols)
     return new_mat;
 }
 
-
+// TODO: fix this function (don't think it works properly)
 void truncate_cols(Matrix** mat, int ncols)
 {
     if (ncols > (*mat)->ncols)

@@ -34,4 +34,3 @@ def load_matrix(fname):
         fname = os.path.join(MATRIX_DIR, fname)
     return np.loadtxt(fname)
     
-#TODO: test svd (write it first)

@@ -4,8 +4,8 @@ DONE 1. Make test matrices
 DONE 2. Test C code using test matrices
 DONE 3. write SVD 
 DONE 4. Write original FD sketch
+DONE 5. Compare our FD sketch to python implementaion
 
-5. Compare our FD sketch to python implementaion (error rates on same matrix) 
 6. Write batched FD sketch from Huang paper
 7. Write modified FD from IPCA paper (alpha-sketching)
 
