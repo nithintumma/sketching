@@ -1,4 +1,28 @@
+CODE/RESEARCH
+........................................
 DONE 1. Make test matrices 
+DONE 2. Test C code using test matrices
+DONE 3. write SVD 
+DONE 4. Write original FD sketch
 
-2. Test C code using test matrices
-3. write SVD 
+5. Compare our FD sketch to python implementaion (error rates on same matrix) 
+6. Write batched FD sketch from Huang paper
+7. Write modified FD from IPCA paper (alpha-sketching)
+
+Things to think about:
+How will we write the code to stream in matrix 
+we will read and update the sketch at the same time, have to read in chunks at a time 
+
+Optimizations with sparse matrices? There must be something that we can do
+
+
+WRITING THESIS 
+........................................  
+1. Look at other theses (Tarik's would be a good example) and see what the breakdown is 
+
+Introduction
+    Explain what the goal of sketching is
+    what are some applications 
+    what are we trying to do/solve
+
+Related Work

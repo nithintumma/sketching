@@ -16,7 +16,7 @@ void old_test_mult(int r)
 void test_frob_norm(int r, int c)
 {
     Matrix mat = eye(r);
-    float norm = frobenius_norm(&mat);
+    float norm = sq_frobenius_norm(&mat);
     printf("%f Norm\n", norm);
 }
 
@@ -100,6 +100,39 @@ void test_transpose()
         printf("Failed\n");
 }
 
+void test_truncate_cols()
+{
+    printf("Testing truncate_cols (visually): \n");
+    char* mat_name = "test_matrices/small_mat.txt";
+    Matrix mat = read_mat(mat_name);
+    printf("Original matrix\n");
+    print_mat(&mat);
+    truncate_cols(&mat, mat.ncols-3);
+    printf("Truncated matrix\n");
+    print_mat(&mat);
+    /*
+    bool flag = true;
+    if (trunc_mat.ncols == (mat.ncols - 3))
+    {
+        for (int i=0; i<mat.nrows; i++)
+        {
+            for (int j=0; j<trunc_mat.ncols; j++)
+            {
+                if (get_ind(&mat, i, j) != get_ind(&trunc_mat, i, j))
+                    flag = false;
+            }
+        }
+        if (flag)
+            printf("Passed\n");
+        else
+            printf("Failed\n");
+    }
+    else
+        printf("Failed\n");
+    */
+}
+
+
 void test_scalar_mult()
 {
     printf("Testing Scalar Mult: ");
@@ -135,13 +168,13 @@ void test_mult()
 void test_frobenius_norm()
 {
     // mat 1 has fro norm of 182.2955
-    printf("Testing Frobenius Norm: ");
+    printf("Testing Sq Frobenius Norm: ");
     char* mat1_fname = "test_matrices/mat1.txt";
     Matrix mat1 = read_mat(mat1_fname);
-    float result = frobenius_norm(&mat1);
+    float result = sq_frobenius_norm(&mat1);
     //printf("Norm is %f\n", result);
     // sqrt is less stable than other operations, need smaller tolerance
-    if (fabs(result - 182.2955) < 0.01)
+    if (fabs(result - (182.2955 * 182.2955)) < 0.01)
         printf("Passed\n");
     else
         printf("Failed\n");
@@ -155,4 +188,6 @@ int main(int argc, char* argv[])
     test_scalar_mult();
     test_mult();
     test_frobenius_norm();
+    test_truncate_cols();
 }
+

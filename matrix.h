@@ -6,12 +6,15 @@ typedef struct Matrix
     double* matrix;
 } Matrix;
 
-// construct matrix 
+// construc/modify matrix 
 Matrix init_mat(int rows, int cols);
+void free_mat(Matrix* mat);
 Matrix zeros(int rows, int cols);
 Matrix diag(double* diagonal, int rows);
 Matrix rand_matrix(int rows, int cols);
 Matrix eye(int rows);
+void truncate_cols(Matrix** mat, int ncols);
+Matrix truncate_cols_2(Matrix* mat, int ncols);
 
 double get_ind(Matrix* mat, int x, int y);
 void set_ind(Matrix* mat, int x, int y, double val); 

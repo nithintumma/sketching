@@ -20,10 +20,21 @@ Matrix init_mat(int rows, int cols)
     return mat;
 }
 
+void free_mat(Matrix *mat)
+{
+    // free the matrix
+    free(mat->matrix);
+}
+
 // compute array index given r, c
 // row-wise stored
 double get_ind(Matrix* mat, int x, int y)
 {
+   if (x >= mat->nrows || y >= mat->ncols)
+   {
+       printf("Accessing out of bounds: %d %d %d %d\n", mat->nrows, x, mat->ncols, y);
+       exit(1);
+   }
     // return double at row x, col y of matrix (0 indexed)
     return mat->matrix[x * mat->ncols + y];
 }
@@ -31,6 +42,11 @@ double get_ind(Matrix* mat, int x, int y)
 // set the matrix at x, y to val
 void set_ind(Matrix* mat, int x, int y, double val)
 {
+    if (x >= mat->nrows || y >= mat->ncols)
+    {
+        printf("Accessing out of bounds: %d %d %d %d\n", mat->nrows, x, mat->ncols, y);
+        exit(1);
+    }
     mat->matrix[x * mat->ncols + y] = val;
 }
 
@@ -87,6 +103,61 @@ Matrix eye(int rows)
     return mat; 
 }
 
+// does truncate matrix work? 
+// trunacate Matrix with ncols < mat->ncols columns in place 
+// what if we passed in a pointer to the pointer 
+Matrix truncate_cols_2(Matrix* mat, int ncols)
+{
+    if (ncols > mat->ncols)
+    {
+        printf("Cannot truncate to more columns than original matrix\n");
+        exit(1);
+    }
+    // maybe we should just return a pointer to the new matrix 
+    static Matrix new_mat;
+    new_mat = zeros(mat->nrows, ncols);
+    static Matrix* new_mat_p;
+    new_mat_p = &new_mat;
+
+    for(int i=0; i<mat->nrows; i++)
+    {
+        for(int j=0; j<ncols; j++)
+            set_ind(new_mat_p, i, j, get_ind(mat, i, j));
+    }
+    // what do I do here
+    return new_mat;
+}
+
+
+void truncate_cols(Matrix** mat, int ncols)
+{
+    if (ncols > (*mat)->ncols)
+    {
+        printf("Cannot truncate to more columns than original matrix\n");
+        exit(1);
+    }
+
+    Matrix new_mat = init_mat((*mat)->nrows, ncols);
+
+
+    //double* new_mat = (double*) malloc(mat->nrows * ncols * sizeof(double));
+    // create new matrix
+    // now what do we have to do 
+    for (int i=0; i<(*mat)->nrows; i++)
+    {
+        for (int j=0; j<ncols; j++)
+            //TODO: make this a setter function
+            //new_mat[i * ncols + j] = get_ind(mat, i, j);
+            set_ind(&new_mat, i, j, get_ind(*mat, i, j));
+    }
+    free_mat(*mat);
+    *mat = &new_mat; 
+    // clean up old matrix
+    //free(mat->matrix);
+    //mat->ncols = ncols;
+    //mat->matrix = new_mat;
+}
+
 // Need a function to print matrix
 void print_mat(Matrix* mat)
 {
@@ -112,7 +183,7 @@ void write_mat(Matrix* mat, char* fname)
     {
         for (int y=0; y < mat->ncols; y++)
         {
-            fprintf(fp, " %0.2f ", get_ind(mat, x, y)); 
+            fprintf(fp, " %f ", get_ind(mat, x, y)); 
         }
         fprintf(fp, "\n");
     }
@@ -143,6 +214,7 @@ Matrix read_mat(char* fname)
         // how do we read in the values from the current line? 
         for (int j=0; j<ncols; j++)
         {
+            //TODO: replace this with set_ind if possible
             sscanf(buf + total_bytes_read, "%lf%n", &mat.matrix[i*ncols + j], &bytes_read);
             total_bytes_read += bytes_read;
         }
@@ -160,7 +232,7 @@ Matrix add(Matrix* mat1, Matrix* mat2)
 {
     if (mat1->nrows != mat2->nrows && mat1->ncols != mat2->ncols)
     {
-        printf("Cannot add matrices without the same shape");
+        printf("Cannot add matrices without the same shape\n");
         exit(1);
     }
     Matrix result = init_mat(mat1->nrows, mat1->ncols);
@@ -175,7 +247,7 @@ Matrix subtract(Matrix* mat1, Matrix* mat2)
 {
     if (mat1->nrows != mat2->nrows && mat1->ncols != mat2->ncols)
     {
-        printf("Cannot subtract matrices without the same shape");
+        printf("Cannot subtract matrices without the same shape\n");
         exit(1);
     }
     Matrix result = init_mat(mat1->nrows, mat1->ncols);
@@ -201,7 +273,7 @@ Matrix transpose(Matrix* mat)
     // iterate through the rows cols of the original matrix 
     for (int i=0; i<mat->nrows; i++)
         for (int j=0; j<mat->ncols; j++)
-            result.matrix[j*result.ncols + i] = mat->matrix[i*mat->ncols + j];
+            set_ind(&result, j, i, get_ind(mat, i, j));
     return result;
 }
 
@@ -210,7 +282,7 @@ Matrix mult(Matrix* mat1, Matrix* mat2)
 {
     if (mat1->ncols != mat2->nrows)
     {
-        printf("Cannot multiply matrices, incompatible shapes");
+        printf("Cannot multiply matrices, incompatible shapes\n");
         exit(1);
     }
     // look up the matrix multiplication function 
@@ -278,3 +350,4 @@ void print_s_mat(double** mat, int nrows, int ncols)
         printf("\n");
     }
 }
+

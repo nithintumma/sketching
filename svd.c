@@ -34,8 +34,19 @@ double pythag(double a, double b)
  singular values in the array w
  and 
 */
-int svd(Matrix* mat, double* w, Matrix* V)
+ // accept an argument to Truncate V before returning? (for reduced SVD)
+ // if reduced, return V as 
+int svd(Matrix* mat, double* w, Matrix* V, bool reduced)
 {
+    // we need to be able to support this!
+    /* 
+    if (mat->nrows < mat->ncols)
+    {
+        printf("Cannot support nRows < nCols (try on transpose)\n");
+        exit(0);
+    }
+    */
+
     double anorm, c, f, g, h, s, scale, x, y, z, val;
     scale = 0.0;
     anorm = 0.0;
@@ -46,6 +57,7 @@ int svd(Matrix* mat, double* w, Matrix* V)
     n = mat->ncols;
     m = mat->nrows;
     rv1 = (double*) malloc(sizeof(double) * n);
+    Matrix npV; 
     
     //TODO: add checks for NULL pointers everywhere 
     int i, j, k, l, jj;
@@ -169,8 +181,7 @@ int svd(Matrix* mat, double* w, Matrix* V)
         g = rv1[i];
         l = i;
     }
-    // SEEMS GOOD TO HERE
-
+    // SEEMS GOOD TO HERE maybe the problem is n << m
     // original says 'accumulation of left hand transformations'
     for (i=MIN(m, n)-1; i>=0; i--)
     {
@@ -202,11 +213,13 @@ int svd(Matrix* mat, double* w, Matrix* V)
         }
         set_ind(mat, i, i, get_ind(mat, i, i) + 1);
     }
+
     // original says 'diag. of the bidiagonal form'
     for (k=n-1; k>=0; k--)
     {
         for (its=0; its<30; its++)
         {
+            //printf("%d %d\n", k, its);
             flag = 1;
             for (l=k; l>=0; l--)
             {
@@ -214,7 +227,7 @@ int svd(Matrix* mat, double* w, Matrix* V)
                 //sample has the check on rv1[l] here
                 // we had on w[nm]
                 //printf("L: %d, RV: %0.2f, W: %0.2f\n", l, rv1[l], w[nm]);
-                if (FLOAT_EQ((fabs(rv1[l]) + anorm), anorm))
+                if ((l == 0) || FLOAT_EQ((fabs(rv1[l]) + anorm), anorm))
                 //if(fabs(rv1[l] + anorm) == anorm)
                 //if (l==0 || (FLOAT_EQ(fabs(rv1[l]), 0.0)))
                {
@@ -231,6 +244,7 @@ int svd(Matrix* mat, double* w, Matrix* V)
                     break;
                 }
             }
+
             if (flag)
             {
                 c = 0.0;
@@ -259,6 +273,7 @@ int svd(Matrix* mat, double* w, Matrix* V)
                         z = get_ind(mat, j, i);
                         set_ind(mat, j, nm, y*c + z*s);
                         set_ind(mat, j, i, z*c - y*s);
+
                     }
                 }
             }
@@ -347,7 +362,27 @@ int svd(Matrix* mat, double* w, Matrix* V)
     }
     // reorder the matrices 
     if(reorder(mat, w, V) == 0)
+    {
+        // truncate V if necessary (should we also truncate U)
+        if (reduced)
+        {
+            // we need to truncate V to the right number of columns
+            // we want to truncate these columns in place I guess 
+            printf("NOT REDUCING SHOULD FIX\n");
+            /*
+            printf("Before reduction\n");
+            print_mat(V);
+            if (mat->ncols > mat->nrows)
+            {
+                // try and overwrite V
+                printf("New col dimensions should be %d\n", (int)fmin(mat->ncols, mat->nrows));
+                V = truncate_cols_2(V, (int)fmin(mat->ncols, mat->nrows));
+                print_mat(V);
+            }
+            */
+        }
         return 0;
+    }
     else
         return 1;
     // TODO: cleanup (free arrays etc.)
@@ -401,7 +436,7 @@ int reorder(Matrix* U, double* w, Matrix* V)
         }
 
     } while(inc > 1);
-    //TODO: flip signs? do we need this? 
+    //TODO: flip signs? do we need this? probably add this so we get closer to others?
     return 0;
 }
 
@@ -410,7 +445,7 @@ double l2_norm(Matrix* mat)
     // largest singular value of the matrix
     double* svals = malloc(sizeof(double) * mat->ncols); 
     Matrix V = zeros(mat->ncols, mat->ncols);
-    if (svd(mat, svals, &V) == 0)
+    if (svd(mat, svals, &V, true) == 0)
         return svals[0];
     else
     {
@@ -419,20 +454,24 @@ double l2_norm(Matrix* mat)
     }
 }
 
-int test(char* fname)
+int test_svd(char* fname)
 {
     Matrix mat = read_mat(fname);
+    // gets us a m X n matrix with m < n
+    //mat = transpose(&mat);
     double* w = (double*) malloc(sizeof(double) * mat.ncols);
     printf("Input Matrix\n");
     print_mat(&mat);
+    // we really want this to be mat.nrows X mat.ncols
     Matrix V = zeros(mat.ncols, mat.ncols);
-    if (svd(&mat, w, &V) == 0)
+    if (svd(&mat, w, &V, true) == 0)
     {
         printf("Singular values\n");
         for (int i=0; i<mat.ncols; i++)
             printf("%0.4f ", w[i]);
-        printf("\nLeft Singular Vectors\n");
-        print_mat(&mat);
+        write_mat(&V, "test_matrices/right_t_med_svd_mat.txt");
+        printf("\nTruncated Right Singular Vectors\n");
+        print_mat(&V);
         return 0;
     }
     return 1;
@@ -443,8 +482,8 @@ int main(int argc, char* argv[])
 {
     // read in random matrix 
     // compute svd
-    char* fname = "test_matrices/large_svd_mat.txt";
-    if (test(fname) == 0)
+    char* fname = "test_matrices/small_mat.txt";
+    if (test_svd(fname) == 0)
     {
         printf("Success\n");
         return 0;

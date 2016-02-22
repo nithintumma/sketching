@@ -1,7 +1,7 @@
 RM = rm -f
 
 sketch: matrix.c svd.c sketch.c
-	gcc -o sketch matrix.c svd.c sketch.c
+	gcc -o sketch -g matrix.c svd.c sketch.c
 
 test: matrix.c test.c 
 	gcc -o test matrix.c test.c 
