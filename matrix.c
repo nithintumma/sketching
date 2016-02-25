@@ -8,8 +8,30 @@
 //TODO: DO WE NEED TO FREE THE ARRAY INSIDE STRUCT
 //TODO: USE SET_IND EVERYWHERE SO WE CAN CHANGE ROW/COLUMN
 
+
 // test double equality 
 #define FLOAT_EQ(a, b)      (fabs(a - b) < 0.0001)
+
+// NOT SURE IF THIS IS THE RIGHT WAY TO DO THIS!!
+#if (STORE == 0)
+    inline double get_ind(Matrix* mat, int x, int y)
+    {
+        return mat->matrix[x * mat->ncols + y];
+    }
+    inline void set_ind(Matrix* mat, int x, int y, double val)
+    {
+        mat->matrix[x * mat->ncols + y] = val;
+    }
+#else 
+    inline double get_ind(Matrix* mat, int x, int y)
+    {
+        return mat->matrix[y * mat->nrows + x];
+    }
+    inline void set_ind(Matrix* mat, int x, int y, double val)
+    {
+        mat->matrix[y * mat->nrows + x] = val;
+    }
+#endif
 
 Matrix init_mat(int rows, int cols)
 {
@@ -26,29 +48,28 @@ void free_mat(Matrix *mat)
     free(mat->matrix);
 }
 
-// compute array index given r, c
-// row-wise stored
-double get_ind(Matrix* mat, int x, int y)
+// do multiplication in place 
+void mult_diag(Matrix* result, double* diag, int diag_len, Matrix* mat2)
 {
-   if (x >= mat->nrows || y >= mat->ncols)
-   {
-       printf("Accessing out of bounds: %d %d %d %d\n", mat->nrows, x, mat->ncols, y);
-       exit(1);
-   }
-    // return double at row x, col y of matrix (0 indexed)
-    return mat->matrix[x * mat->ncols + y];
-}
-
-// set the matrix at x, y to val
-void set_ind(Matrix* mat, int x, int y, double val)
-{
-    if (x >= mat->nrows || y >= mat->ncols)
+    // return the result of diagonal(diag) * mat2
+    // assert that the result is the right shape 
+    if((result->nrows != diag_len) || (mat2->nrows != diag_len) || (result->ncols != mat2->ncols))
     {
-        printf("Accessing out of bounds: %d %d %d %d\n", mat->nrows, x, mat->ncols, y);
+        printf("Matrices not of the right shape\n");
         exit(1);
     }
-    mat->matrix[x * mat->ncols + y] = val;
+    double val; 
+    // this is not the order that we want to run the for loop in 
+    // multiply the ith row of mat2 by diag[i]
+    // DO THIS ORDER FOR EFFICIENCY 
+    for (int j=0; j<mat2->ncols; j++)
+        for (int i=0; i<mat2->nrows; i++)
+        {
+            val = diag[i] * get_ind(mat2, i, j);
+            set_ind(result, i, j, val);
+        }
 }
+
 
 // construct a diagonal matrix with input array as diagonal
 Matrix diag(double* diagonal, int rows)
@@ -128,6 +149,29 @@ Matrix truncate_cols_2(Matrix* mat, int ncols)
     return new_mat;
 }
 
+// TODO: do this in place 
+Matrix truncate_rows(Matrix* mat, int nrows)
+{
+    if (nrows > mat->nrows)
+    {
+        printf("Cannot truncate to more columns than original matrix\n");
+        exit(1);
+    }
+    // maybe we should just return a pointer to the new matrix 
+    static Matrix new_mat;
+    new_mat = zeros(nrows, mat->ncols);
+    static Matrix* new_mat_p;
+    new_mat_p = &new_mat;
+
+    for(int i=0; i<nrows; i++)
+    {
+        for(int j=0; j<mat->ncols; j++)
+            set_ind(new_mat_p, i, j, get_ind(mat, i, j));
+    }
+    return new_mat;
+
+}
+
 // TODO: fix this function (don't think it works properly)
 void truncate_cols(Matrix** mat, int ncols)
 {
@@ -166,6 +210,7 @@ void print_mat(Matrix* mat)
     {
         for (int y=0; y < mat->ncols; y++)
         {
+            // TODO: deal with negatives taking up more space? 
             printf(" %0.2f ", get_ind(mat, x, y)); 
         }
         printf("\n");
@@ -195,13 +240,19 @@ Matrix read_mat(char* fname)
 {
     FILE* fp = fopen(fname, "r"); 
     // read in the first line to get r, c 
-    int nrows, ncols; 
-    // buffer to hold line
-    int buf_size = 4096;
-    char* buf = malloc(buf_size * sizeof(char));
-    if (fgets(buf, buf_size, fp) != NULL)
-        sscanf(buf, "# %d %d", &nrows, &ncols);
+    int nrows, ncols;
+    // buffer to hold the header
+    int h_buf_size = 1000; 
+    char* h_buf = malloc(h_buf_size * sizeof(char));
+    if (fgets(h_buf, h_buf_size, fp) != NULL)
+        sscanf(h_buf, "# %d %d", &nrows, &ncols);
     int n = nrows * ncols; 
+    free(h_buf);
+    // buffer to hold line 
+    // 24 for the largest # of chars in a float 
+    int buf_size = ncols * 24;
+    char* buf = malloc(buf_size * sizeof(char));
+
     // create the array that will store the Matrix
     Matrix mat = init_mat(nrows, ncols);
     // read the file line by line
@@ -209,13 +260,16 @@ Matrix read_mat(char* fname)
     int bytes_read = 0;
     int total_bytes_read = 0;
     // maybe check if we have read more lines than we need? 
+    double val;
     while(fgets(buf, buf_size, fp) != NULL)
     {
         // how do we read in the values from the current line? 
         for (int j=0; j<ncols; j++)
         {
             //TODO: replace this with set_ind if possible
-            sscanf(buf + total_bytes_read, "%lf%n", &mat.matrix[i*ncols + j], &bytes_read);
+            sscanf(buf + total_bytes_read, "%lf%n", &val, &bytes_read);
+            //&mat.matrix[i*ncols + j]
+            set_ind(&mat, i, j, val);
             total_bytes_read += bytes_read;
         }
         i++;
@@ -227,6 +281,7 @@ Matrix read_mat(char* fname)
     return mat; 
 }
 //TODO: change this to get/set?
+// Assumes that the matrices are stored in the same way (row/col), should be fine
 // add two matrices, return new matrix
 Matrix add(Matrix* mat1, Matrix* mat2)
 {
@@ -341,6 +396,7 @@ double** convert_mat(Matrix* mat)
     return doub_mat;
 }
 
+// print matrix that is stored as two dimensional array (C row major)
 void print_s_mat(double** mat, int nrows, int ncols)
 {
     for (int i=0; i<nrows; i++)

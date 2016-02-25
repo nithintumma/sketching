@@ -7,3 +7,4 @@ int zero_row(Matrix* mat);
 
 // returns a FD sketch of input matrix with l rows
 Matrix fd_sketch(Matrix* mat, int l);
+Matrix fd_sketch_l(Matrix* mat, int l);

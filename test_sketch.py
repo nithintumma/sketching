@@ -3,25 +3,39 @@ import subprocess
 import numpy as np
 import time 
 import re 
+import matplotlib.pyplot as plt 
+
 
 from helpers import load_matrix, write_matrix
 import sys 
 sys.path.append('../frequent-direction/')
 from fd_sketch import sketch, calculateError, squaredFrobeniusNorm
 
-
-
-# read in the matrix, compute the sketch and the error, compare to the error that we got 
-
-# would be easiest to do all the scripting from python to run the C code 
-# we should have the sketch program write the output sketch to file 
+# CONSTANTS 
 MATRIX_DIR = 'test_matrices'
 RUN_SKETCH = './sketch'
 
-def construct_sketches(orig_mat_fname, ls, check_c=True):
+def fd_bound(mat, l):
+	return  2 * squaredFrobeniusNorm(mat) / l 	
+
+def run_fd_sketch(mat_pname, write_pname, l):
+	# do exactly what the C code is doing (including reading and writing files)
+	mat = load_matrix(mat_pname)
+	p_sketch = sketch(mat, l)
+	write_matrix(p_sketch, write_pname)
+	return p_sketch
+
+def construct_sketches(orig_mat_fname, ls, check_c=True, force_comp=False):
 	"""
 	generates sketch files using input l's 
+	@param orig_mat_fname: name of input matrix file inside MATRIX_DIR
+	@param ls: List of sketch sizes to construct
+	@param check_c: flag whether to construct sketches using custom C implementation
+	@param force_comp: disregard cached sketch, recompute (required to determine runtime)
 	"""
+	# TOOD: check if we've already constructed it. 
+	# we can check for the right filename and then some
+	# maybe don'r run again? 
 	p_fnames = []
 	p_times = []
 	if check_c:
@@ -32,26 +46,41 @@ def construct_sketches(orig_mat_fname, ls, check_c=True):
 	mat_pname = os.path.join(MATRIX_DIR, orig_mat_fname)
 	mat = load_matrix(mat_pname)
 	rows, cols = mat.shape
+	# create C binary 
+	if check_c:
+		subprocess.call(["make", "clean"])
+		subprocess.call(["make", "sketch"])
+
 	for l in ls:
 		# generate p_sketch
 		assert(l <= cols)
 		p_sketch_pname = os.path.join(MATRIX_DIR, 
 										"p_sketch_%d_%s" %(l, orig_mat_fname))
-		start = time.time()
-		p_sketch = sketch(mat, l)
-		p_time = time.time() - start
-		write_matrix(p_sketch, p_sketch_pname)
+		if not(check_sketch_file(mat_pname, p_sketch_pname, l)) or force_comp:
+			start = time.time()
+			run_fd_sketch(mat_pname, p_sketch_pname, l)
+			p_time = time.time() - start
+		else:
+			p_time = 0.0
 		p_fnames.append(p_sketch_pname)
 		p_times.append(p_time)
 		if check_c:
 			c_sketch_pname = os.path.join(MATRIX_DIR, 
 											"c_sketch_%d_%s" %(l, orig_mat_fname))
-			subprocess.call(["make", "clean"])
-			subprocess.call(["make", "sketch"])
-			start = time.time()
-			c_output = subprocess.check_output([RUN_SKETCH, '-f', mat_pname, '-w', c_sketch_pname, '-l', str(l)])
-			c_time = time.time() - start
-			print"C output on: ", l,  c_output
+			
+			#
+			if not(check_sketch_file(mat_pname, c_sketch_pname, l)) or force_comp:
+				start = time.time()
+				# not a fair comparison because of shit
+				c_output = subprocess.check_output([RUN_SKETCH, '-f', mat_pname, '-w', c_sketch_pname, '-l', str(l)])
+				c_time = time.time() - start				
+				# so we should get the time from c_output, hopefully just one float shows up
+				#num_matches = re.findall("\d+\.\d+", c_output)
+				#c_time = float(num_matches[0])
+				print"C output on: ", l,  c_output
+				print "Python time: ", c_time
+			else:
+				c_time = 0.0
 			c_fnames.append(c_sketch_pname)
 			c_times.append(c_time)
 	if check_c:
@@ -59,8 +88,21 @@ def construct_sketches(orig_mat_fname, ls, check_c=True):
 	else:
 		return p_fnames, p_times 
 
-def fd_bound(mat, l):
-	return  2 * squaredFrobeniusNorm(mat) / l 	
+def check_sketch_file(orig_mat_fname, sketch_fname, l):
+	# assert os.path.exists
+	assert(os.path.exists(orig_mat_fname))
+	mat = load_matrix(orig_mat_fname)
+	if not os.path.exists(sketch_fname):
+		return False
+	sketch = load_matrix(sketch_fname)
+	if mat.shape[1] != sketch.shape[1]:
+		return False
+	bound = fd_bound(mat, l)
+	err = calculateError(mat, sketch)
+	if err < bound: 
+		return True 
+	else:
+		return False
 
 def plot_errors(orig_mat_fname, p_fnames, c_fnames = None):
 	# load the original matrix 
@@ -88,7 +130,8 @@ def plot_errors(orig_mat_fname, p_fnames, c_fnames = None):
 			p_err = calculateError(mat, p_sketch)
 			c_err = calculateError(mat, c_sketch)
 			print p_err, c_err
-			assert(np.isclose(p_err, c_err, atol=1e-2))
+			# the optimizations make floating point arithmetic not exact 
+			assert(np.isclose(p_err/c_err, 1.0, atol=1e-1))
 			ls.append(p_l)
 			errs.append(p_err)
 			bounds.append(bound)
@@ -101,6 +144,18 @@ def plot_errors(orig_mat_fname, p_fnames, c_fnames = None):
 			ls.append(p_l)
 			errs.append(p_err)
 			bounds.append(bound)
+	# lets plot this shit 
+	plt.plot(ls, errs, '-o', color='b', label='cov err')
+	plt.plot(ls, bounds, '-o', color='r', label='upper bound')
+	plt.xlabel("Sketch size (l)")
+	plt.ylabel("Error")
+	title = "Sketch size vs Reconstruction Error: %d X %d" %(mat.shape[0], mat.shape[1])
+	plt.title(title)
+	plt.grid()
+	plt.legend(loc=3)
+	plt.yscale('log')
+	#plt.xlim(25, 375)
+	plt.show() 
 	return ls, errs, bounds
 
 def test(mat_name, l, check_c = True):
@@ -158,21 +213,35 @@ def main():
 	print "Py Error %f, Bound: %f, Passed: %r, Took: %f s" % (p_err, err_bound, p_err < err_bound, p_time)
 	if c_err:
 		print "C Error %f, , Bound: %f, Passed %r, Took: %f s" % (c_err, err_bound, c_err < err_bound, c_time)
- 
 
 def experiment_1():
-	ls = [10, 20, 30, 40]
-	fname = "med_svd_mat.txt"
+	# 100, 200, ... 800, 900
+	ls = np.arange(100, 1000, 100)
+	fname = "10000_1000_mat.txt"
 	check_c = True
+	force_comp = True
 	if check_c:
-		p_fnames, p_times, c_fnames, c_times = construct_sketches(fname, ls, check_c=True)
+		p_fnames, p_times, c_fnames, c_times = construct_sketches(fname, ls, check_c=check_c, force_comp=force_comp)
 	else:
-		p_fnames, p_times = construct_sketches(fname, ls, check_c=True)
+		p_fnames, p_times = construct_sketches(fname, ls, check_c=check_c)
 	# if we get here good job
 	print "Constructed sketches"
 	print plot_errors(fname, p_fnames, c_fnames)
+	# plot the runtimes  
+	plt.figure()
+	print "P times: ", p_times
+	print "C times: ", c_times
+	plt.plot(ls, np.array(c_times)/np.array(p_times), '-o', color='b', label='C/Numpy Time')
+	#plt.plot(ls, c_times, '-o', color='r', label='C Time')
+	plt.xlabel('Sketch Size (l)')
+	plt.ylabel('Runtime (s)')
+	title = "Sketch Size vs Runtime, Numpy & C"
+	plt.title(title)
+	plt.grid()
+	plt.legend(loc=3)
+	plt.show()
 
-	# calculate errors 
+# we have that for two things
 
 if __name__ == '__main__':
     experiment_1()

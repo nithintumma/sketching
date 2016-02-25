@@ -6,6 +6,11 @@ typedef struct Matrix
     double* matrix;
 } Matrix;
 
+//NOTICE: declare row or column store 
+// 0 is ROW
+// 1 is COL
+#define STORE 1
+
 // construc/modify matrix 
 Matrix init_mat(int rows, int cols);
 void free_mat(Matrix* mat);
@@ -15,6 +20,7 @@ Matrix rand_matrix(int rows, int cols);
 Matrix eye(int rows);
 void truncate_cols(Matrix** mat, int ncols);
 Matrix truncate_cols_2(Matrix* mat, int ncols);
+Matrix truncate_rows(Matrix* mat, int nrows);
 
 double get_ind(Matrix* mat, int x, int y);
 void set_ind(Matrix* mat, int x, int y, double val); 
@@ -30,6 +36,9 @@ Matrix subtract(Matrix* mat1, Matrix* mat2);
 Matrix mult_scalar(Matrix* mat, double c);
 Matrix transpose(Matrix* mat);
 Matrix mult(Matrix* mat1, Matrix* mat2);
+// left mult by diagonal matrix, pass in result 
+void mult_diag(Matrix* result, double* diag, int diag_len, Matrix* mat2);
+
 double sq_frobenius_norm(Matrix* mat);
 bool equal(Matrix* mat1, Matrix* mat2);
 
