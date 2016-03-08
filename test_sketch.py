@@ -204,20 +204,10 @@ def test_svd(mat_name):
 	print np.around(V, 2)
 	print "Singular values: ", w
 
-def main():
-	mat_name = "large_svd_mat.txt"
-	# get m, n s
-	l = 300
-	err_bound, f_norm, p_err, p_time, c_err, c_time = test(mat_name, l, check_c=True)
-	print "Sq Frobenius Norm %f" % (f_norm)
-	print "Py Error %f, Bound: %f, Passed: %r, Took: %f s" % (p_err, err_bound, p_err < err_bound, p_time)
-	if c_err:
-		print "C Error %f, , Bound: %f, Passed %r, Took: %f s" % (c_err, err_bound, c_err < err_bound, c_time)
-
 def experiment_1():
 	# 100, 200, ... 800, 900
 	ls = np.arange(100, 1000, 100)
-	fname = "10000_1000_mat.txt"
+	fname = "2000_1000_mat.txt"
 	check_c = True
 	force_comp = True
 	if check_c:

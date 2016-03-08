@@ -1,8 +1,11 @@
 RM = rm -f
 FW = -framework Accelerate 
 
-sketch: matrix.c svd.c sketch.c
-	gcc -o sketch -Ofast -g -framework Accelerate matrix.c svd.c svd_lapack.c sketch.c
+tsketch: matrix.c svd.c sketch.c thread_sketch.c
+	gcc -o tsketch -Ofast -g -framework Accelerate matrix.c svd.c svd_lapack.c sketch.c thread_sketch.c
+
+sketch: matrix.c svd.c svd_lapack.c sketch.c run_sketch.c
+	gcc -o sketch -Ofast -g -framework Accelerate matrix.c svd.c svd_lapack.c sketch.c run_sketch.c
 
 test: matrix.c test.c 
 	gcc -o test matrix.c test.c 

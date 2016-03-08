@@ -5,12 +5,13 @@ DONE 2. Test C code using test matrices
 DONE 3. write SVD 
 DONE 4. Write original FD sketch
 DONE 5. Compare our FD sketch to python implementaion
-
-6. Write batched FD sketch from Huang paper
-7. Write modified FD from IPCA paper (alpha-sketching)
+DONE: 6. Write batched FD sketch from Huang paper
+DONE: 7. Write modified FD from IPCA paper (alpha-sketching)
 
 Things to think about:
 How will we write the code to stream in matrix 
+    - seems like we won't need to for testing,
+
 we will read and update the sketch at the same time, have to read in chunks at a time 
 
 Optimizations with sparse matrices? There must be something that we can do
@@ -26,3 +27,4 @@ Introduction
     what are we trying to do/solve
 
 Related Work
+
