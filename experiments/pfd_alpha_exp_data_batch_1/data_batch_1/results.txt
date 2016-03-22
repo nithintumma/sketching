@@ -1,0 +1,12 @@
+Alpha PFD Experiment: pfd_alpha_exp_data_batch_1, Matrix: data_batch_1, Sketch Size: 800
+
+Alpha: 0, Runtime: 172.749947 secs, Err: 0.000006, Proj Err: 11.345990
+Alpha: 0, Runtime: 185.959524 secs, Err: 0.000006, Proj Err: 11.521375
+Alpha: 0, Runtime: 193.991602 secs, Err: 0.000006, Proj Err: 11.590739
+Alpha: 0, Runtime: 185.719662 secs, Err: 0.000006, Proj Err: 11.629703
+Alpha: 0, Runtime: 184.967769 secs, Err: 0.000006, Proj Err: 11.639913
+Alpha: 0, Runtime: 184.688190 secs, Err: 0.000006, Proj Err: 11.646006
+Alpha: 0, Runtime: 184.620190 secs, Err: 0.000006, Proj Err: 11.649193
+Alpha: 0, Runtime: 174.347012 secs, Err: 0.000006, Proj Err: 11.649402
+Alpha: 0, Runtime: 174.137614 secs, Err: 0.000006, Proj Err: 11.649491
+Alpha: 1, Runtime: 174.176279 secs, Err: 0.000006, Proj Err: 11.649704
