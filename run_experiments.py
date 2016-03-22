@@ -35,8 +35,7 @@ def alpha_experiment(mat_fname=MATRIX, l=800, alphas=None):
 	"""
 	changing alpha (FD param), fixed sketch size
 	"""
-	mat_fname = rand_mat_1_fname
-	l = 800
+        print "Alpha Experiment"
 	if alphas is None:
 		alphas = np.arange(0.1, 1.1, 0.1)
 	print "Testing alphas: ", alphas
