@@ -1,0 +1,12 @@
+Dynamic FD Sketch Experiment: dynamic_exp_data_batch_1, Matrix: data_batch_1, Initial Sketch Size: 200, End Sketch Size: 800, Batch Size: 800
+
+Change Point: 1, Runtime: 62.411581 secs, Err: 0.000006, Proj Err: 11.649704
+Change Point: 1001, Runtime: 62.938944 secs, Err: 0.000011, Proj Err: 11.774287
+Change Point: 2001, Runtime: 54.220721 secs, Err: 0.000017, Proj Err: 11.929693
+Change Point: 3001, Runtime: 54.008261 secs, Err: 0.000023, Proj Err: 12.107589
+Change Point: 4001, Runtime: 57.907018 secs, Err: 0.000029, Proj Err: 12.325690
+Change Point: 5001, Runtime: 45.742372 secs, Err: 0.000035, Proj Err: 12.593279
+Change Point: 6001, Runtime: 43.348767 secs, Err: 0.000048, Proj Err: 13.392983
+Change Point: 7001, Runtime: 38.769348 secs, Err: 0.000054, Proj Err: 14.033762
+Change Point: 8001, Runtime: 37.501006 secs, Err: 0.000061, Proj Err: 15.036960
+Change Point: 9001, Runtime: 32.822879 secs, Err: 0.000067, Proj Err: 16.775174

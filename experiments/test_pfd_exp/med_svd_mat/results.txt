@@ -1,11 +1,11 @@
 Alpha PFD Experiment: test_pfd_exp, Matrix: med_svd_mat.txt, Sketch Size: 30
 
-Alpha: 0, Runtime: 0.002797 secs, Err: 0.003797, Proj Err: 1.016338
-Alpha: 0, Runtime: 0.002455 secs, Err: 0.004162, Proj Err: 1.024964
-Alpha: 0, Runtime: 0.002270 secs, Err: 0.004125, Proj Err: 1.030395
-Alpha: 0, Runtime: 0.002342 secs, Err: 0.004090, Proj Err: 1.027643
-Alpha: 0, Runtime: 0.002127 secs, Err: 0.004023, Proj Err: 1.027424
-Alpha: 0, Runtime: 0.002155 secs, Err: 0.004054, Proj Err: 1.029788
-Alpha: 0, Runtime: 0.002147 secs, Err: 0.004006, Proj Err: 1.028218
-Alpha: 0, Runtime: 0.004100 secs, Err: 0.003999, Proj Err: 1.027756
-Alpha: 0, Runtime: 0.002849 secs, Err: 0.003986, Proj Err: 1.027766
+Alpha: 0, Runtime: 0.002661 secs, Err: 0.003797, Proj Err: 1.016338
+Alpha: 0, Runtime: 0.002251 secs, Err: 0.004162, Proj Err: 1.024964
+Alpha: 0, Runtime: 0.002296 secs, Err: 0.004125, Proj Err: 1.030395
+Alpha: 0, Runtime: 0.002227 secs, Err: 0.004090, Proj Err: 1.027643
+Alpha: 0, Runtime: 0.002137 secs, Err: 0.004023, Proj Err: 1.027424
+Alpha: 0, Runtime: 0.002503 secs, Err: 0.004054, Proj Err: 1.029788
+Alpha: 0, Runtime: 0.002142 secs, Err: 0.004006, Proj Err: 1.028218
+Alpha: 0, Runtime: 0.002156 secs, Err: 0.003999, Proj Err: 1.027756
+Alpha: 0, Runtime: 0.002125 secs, Err: 0.003986, Proj Err: 1.027766
