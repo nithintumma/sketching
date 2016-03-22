@@ -1,0 +1,12 @@
+Alpha PFD Experiment: pfd_alpha_exp_rand_10000_2000, Matrix: rand_10000_2000.txt, Sketch Size: 800
+
+Alpha: 0, Runtime: 60.176917 secs, Err: 0.000175, Proj Err: 1.415417
+Alpha: 0, Runtime: 59.855532 secs, Err: 0.000181, Proj Err: 1.436476
+Alpha: 0, Runtime: 57.431955 secs, Err: 0.000186, Proj Err: 1.454169
+Alpha: 0, Runtime: 58.501665 secs, Err: 0.000188, Proj Err: 1.469601
+Alpha: 0, Runtime: 57.699629 secs, Err: 0.000191, Proj Err: 1.483738
+Alpha: 0, Runtime: 57.014523 secs, Err: 0.000194, Proj Err: 1.496000
+Alpha: 0, Runtime: 55.074541 secs, Err: 0.000196, Proj Err: 1.507494
+Alpha: 0, Runtime: 54.361654 secs, Err: 0.000197, Proj Err: 1.517669
+Alpha: 0, Runtime: 52.420231 secs, Err: 0.000199, Proj Err: 1.527717
+Alpha: 1, Runtime: 58.196470 secs, Err: 0.000210, Proj Err: 1.536952

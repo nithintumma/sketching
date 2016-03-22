@@ -1,0 +1,12 @@
+Batched FD Sketch Experiment: test_batch_exp, Matrix: med_svd_mat.txt, Sketch Size: 30
+
+Batch Size: 1, Runtime: 0.025148 secs, Err: 8.970926
+Batch Size: 7, Runtime: 0.011486 secs, Err: 7.901143
+Batch Size: 13, Runtime: 0.006235 secs, Err: 7.288347
+Batch Size: 19, Runtime: 0.005395 secs, Err: 6.880011
+Batch Size: 25, Runtime: 0.006340 secs, Err: 6.563654
+Batch Size: 31, Runtime: 0.003165 secs, Err: 6.626286
+Batch Size: 37, Runtime: 0.002096 secs, Err: 6.290556
+Batch Size: 43, Runtime: 0.002543 secs, Err: 6.173354
+Batch Size: 49, Runtime: 0.001783 secs, Err: 6.207632
+Batch Size: 55, Runtime: 0.003075 secs, Err: 6.234643

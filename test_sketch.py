@@ -5,15 +5,18 @@ import time
 import re 
 import matplotlib.pyplot as plt 
 
-
 from helpers import load_matrix, write_matrix
-import sys 
-sys.path.append('../frequent-direction/')
-from fd_sketch import sketch, calculateError, squaredFrobeniusNorm
+from fd_sketch import BatchFDSketch, DynamicFDSketch, calculateError, squaredFrobeniusNorm
 
 # CONSTANTS 
 MATRIX_DIR = 'test_matrices'
 RUN_SKETCH = './sketch'
+
+def fd_rank_bound(mat, l, k):
+	1.0/(l - k)
+	U, s_vals, Vt = np.linalg.svd(mat)
+	ss_vals = s_vals ** 2
+	return (1.0/(l - k)) * (np.sum(ss_vals[k:]))
 
 def fd_bound(mat, l):
 	return  2 * squaredFrobeniusNorm(mat) / l 	
@@ -230,6 +233,12 @@ def experiment_1():
 	plt.grid()
 	plt.legend(loc=3)
 	plt.show()
+
+
+def batch_experiments():
+	# how can we abstract out the experiment class to make this stuff efficient/useful
+	return None
+
 
 # we have that for two things
 

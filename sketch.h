@@ -5,6 +5,9 @@ typedef struct Matrix Matrix;
 // returns the index of the first zero row in mat, -1 if none exists
 int zero_row(Matrix* mat);
 
+
+Matrix batch_fd_sketch_l(Matrix* mat, int l, int batch_size);
+
 // returns a FD sketch of input matrix with l rows
 Matrix fd_sketch_l(Matrix* mat, int l);
 // runs fd_sketch_l on submatrix of mat 

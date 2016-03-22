@@ -1,0 +1,12 @@
+Dynamic FD Sketch Experiment: dynamic_exp_rand_10000_2000, Matrix: rand_10000_2000.txt, Initial Sketch Size: 200, End Sketch Size: 800, Batch Size: 800
+
+Change Point: 1, Runtime: 61.836200 secs, Err: 0.000210, Proj Err: 1.536952
+Change Point: 1001, Runtime: 53.609097 secs, Err: 0.000231, Proj Err: 1.540665
+Change Point: 2001, Runtime: 50.325637 secs, Err: 0.000251, Proj Err: 1.544462
+Change Point: 3001, Runtime: 45.795635 secs, Err: 0.000271, Proj Err: 1.548871
+Change Point: 4001, Runtime: 41.760651 secs, Err: 0.000290, Proj Err: 1.555119
+Change Point: 5001, Runtime: 37.532618 secs, Err: 0.000311, Proj Err: 1.562963
+Change Point: 6001, Runtime: 31.344175 secs, Err: 0.000351, Proj Err: 1.586201
+Change Point: 7001, Runtime: 29.331258 secs, Err: 0.000371, Proj Err: 1.603337
+Change Point: 8001, Runtime: 25.349754 secs, Err: 0.000391, Proj Err: 1.626613
+Change Point: 9001, Runtime: 22.795560 secs, Err: 0.000412, Proj Err: 1.659050

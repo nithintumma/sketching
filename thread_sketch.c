@@ -149,6 +149,19 @@ int run_t_sketch(char* mat_fname, int l, int num_threads)
 	return 0; 
 }
 
+
+// DOESN't WORK brutal what should we do? well we can just do the original sketch 
+void test_batched_sketch()
+{
+    char* fname = "test_matrices/med_svd_mat.txt";
+    char* write_fname =  "test_matrices/test_sketch.txt";
+    Matrix mat = read_mat(fname);
+    int l = 20;
+    int batch_size = 20;
+    Matrix sketch = batch_fd_sketch_l(&mat, l, batch_size);
+    write_mat(&sketch, write_fname); 
+}
+
 int main(int argc, char* argv[])
 {
 	char* fname = "test_matrices/med_svd_mat.txt";
