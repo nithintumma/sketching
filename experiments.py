@@ -4,6 +4,8 @@ import numpy as np
 import time 
 import re 
 import matplotlib.pyplot as plt 
+import cPickle as pickle 
+
 
 from helpers import load_matrix, write_matrix
 from fd_sketch import (JLTSketch, CWSparseSketch, FDSketch, BatchFDSketch, PFDSketch, 
@@ -78,15 +80,18 @@ class Experiment(object):
 			else:
 				fig.show()
 
-	def write_results(self, header):
+	def write_results(self, header=" ", only_pickle=False):
 		if self.results is None:
 			raise Exception("Need to compute results")
-		with open(os.path.join(self.exp_dir, "results.txt"), "wb") as r_file:
-			r_file.write("%s\n"%header)
-			for d in self.dependent_vars:
-				rtime, err, proj_err = self.results[d]['time'], self.results[d]['err'], self.results[d]['proj_err']
-				r_file.write("%s: %d, Runtime: %f secs, Err: %f, Proj Err: %f\n" %(self.dependent_var_name, d, rtime, err, proj_err))
-
+		if not only_pickle:
+			with open(os.path.join(self.exp_dir, "results.txt"), "wb") as r_file:
+				r_file.write("%s\n"%header)
+				for d in self.dependent_vars:
+					rtime, err, proj_err = self.results[d]['time'], self.results[d]['err'], self.results[d]['proj_err']
+					r_file.write("%s: %d, Runtime: %f secs, Err: %f, Proj Err: %f\n" %(self.dependent_var_name, d, rtime, err, proj_err))
+		# pickle results 
+		with open(os.path.join(self.exp_dir, "results.p"), "wb") as p_file:
+			pickle.dump(self.results, p_file)
 
 #TODO: add option to plot delta_2/delta_1 and potentially l_hat bound
 class DynamicSketchExperiment(Experiment):
@@ -271,7 +276,7 @@ class SketchExperiment(Experiment):
 		return self.results
 
 	def write_results(self):
-		raise Exception("Not implemented")
+		super(SketchExperiment, self).write_results(only_pickle=True)
 
 	def plot_results(self, err=True, proj_err=True, time=True, save=True):
 		if not self.computed_results:
@@ -449,7 +454,8 @@ def test_sketch_exp():
 	sketch_types = {'jlt': None, 'cw':None, 'fd': None, 'pfd': {'alpha': 0.2}, 'batch-pfd': {'batch_size': 30, 'alpha': 0.2}}
 	sketch_exp = SketchExperiment(exp_name, mat_fname, ls, sketch_types=sketch_types)
 	sketch_exp.run_experiment()
+	sketch_exp.write_results()
 	sketch_exp.plot_results(err=True, time=True, save=True)
 
 if __name__ == "__main__":
-	test_alpha_exp()
+	test_sketch_exp()
