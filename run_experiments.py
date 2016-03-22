@@ -24,9 +24,14 @@ rand_mat_2_fname = "NOT CREATED"
 # sparse
 rand_mat_3_fname = "NOT CREATED"
 
+cifar_mat_fname = 'data_batch_1'
+
+MATRIX = cifar_mat_fname
+
+
 #TODO: get real matrices 
 
-def alpha_experiment(mat_fname=rand_mat_1_fname, l=800, alphas=None):
+def alpha_experiment(mat_fname=MATRIX, l=800, alphas=None):
 	"""
 	changing alpha (FD param), fixed sketch size
 	"""
@@ -46,7 +51,7 @@ def alpha_experiment(mat_fname=rand_mat_1_fname, l=800, alphas=None):
 # will need to compute sketches at different sizes using a variety of sketches 
 # then plot them all on the same graph 
 # theoretically works, we just need to write driver 
-def compare_sketches_experiment(mat_fname=rand_mat_1_fname, l=800, alphas=None):
+def compare_sketches_experiment(mat_fname=MATRIX, l=800, alphas=None):
 	# compare all sketches 
 	sketch_types = {'jlt': None, 'cw':None, 'fd': None, 'pfd': {'alpha': 0.2}, 'batch-pfd': {'batch_size': 400, 'alpha': 0.2}}
 	ls = np.arange(100, 1100, 100)
@@ -56,7 +61,7 @@ def compare_sketches_experiment(mat_fname=rand_mat_1_fname, l=800, alphas=None):
 	sketch_exp.plot_results(err=True, proj_err=True, time=True, save=True)
 
 # dynamic experiment 
-def dynamic_experiment(mat_fname=rand_mat_1_fname, l1=200, l2=800, batch_size=800):
+def dynamic_experiment(mat_fname=MATRIX, l1=200, l2=800, batch_size=800):
 	mat = load_matrix(mat_fname)
 	ts = np.arange(1, mat.shape[0], max(mat.shape[0]/10, 1))
 	exp_name = "dynamic_exp_" + os.path.splitext(mat_fname)[0]
@@ -70,4 +75,5 @@ def dynamic_experiment(mat_fname=rand_mat_1_fname, l1=200, l2=800, batch_size=80
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 
 if __name__ == "__main__":
-	compare_sketches_experiment()
+	#compare_sketches_experiment()
+        alpha_experiment()
