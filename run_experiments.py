@@ -1,7 +1,7 @@
 """
 drivers to run experiments
 """
-import os 
+import os
 import numpy as np
 
 from helpers import load_matrix, write_matrix
