@@ -52,15 +52,16 @@ def alpha_experiment(mat_fname=MATRIX, l=800, alphas=None, plot=False):
 # then plot them all on the same graph 
 # theoretically works, we just need to write driver 
 def compare_sketches_experiment(mat_fname=MATRIX, l=800, alphas=None, plot=False):
-    # compare all sketches 
-    sketch_types = {'jlt': None, 'cw':None, 'fd': None, 'pfd': {'alpha': 0.2}, 'batch-pfd': {'batch_size': 400, 'alpha': 0.2}}
-    ls = np.arange(100, 1100, 100)
-    exp_name = "sketch_exp_" + os.path.splitext(mat_fname)[0]
-    sketch_exp = SketchExperiment(exp_name, mat_fname, ls, sketch_types=sketch_types)
-    sketch_exp.run_experiment()
-    sketch_exp.write_results()
-    if plot:
-        sketch_exp.plot_results(err=True, proj_err=True, time=True, save=True)
+    print "Sketching Experiment"
+	# compare all sketches 
+	sketch_types = {'jlt': None, 'cw':None, 'fd': None, 'pfd': {'alpha': 0.2}, 'batch-pfd': {'batch_size': 400, 'alpha': 0.2}}
+	ls = np.arange(100, 1100, 100)
+	exp_name = "sketch_exp_" + os.path.splitext(mat_fname)[0]
+	sketch_exp = SketchExperiment(exp_name, mat_fname, ls, sketch_types=sketch_types)
+	sketch_exp.run_experiment()
+	sketch_exp.write_results()
+	if plot:
+		sketch_exp.plot_results(err=True, proj_err=True, time=True, save=True)
 
 # dynamic experiment 
 def dynamic_experiment(mat_fname=MATRIX, l1=200, l2=800, batch_size=800):
@@ -78,6 +79,4 @@ def dynamic_experiment(mat_fname=MATRIX, l1=200, l2=800, batch_size=800):
 # batched vs batched random 
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
-    #compare_sketches_experiment()
-    alpha_experiment(plot=True)
-    #dynamic_experiment() 
+    dynamic_experiment() 
