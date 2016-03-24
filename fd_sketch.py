@@ -211,8 +211,8 @@ class DynamicFDSketch(BatchFDSketch):
         self.l_hat = self.l1 * ((1.0 + c_d * c_l) / (1.0 + c_d))
         return self.l_hat 
 
+# Fast PFD sketch
 class TweakPFDSketch(Sketch):
-    # what do we do here? well, we want to set del_ind and alpha_ind as below 
     def __init__(self, mat, l, alpha):
         assert (alpha <= 1 and alpha > 0)
         assert (l <= mat.shape[1])
@@ -261,8 +261,6 @@ class TweakPFDSketch(Sketch):
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time
         return self.sketch
-
-
 
 class BatchPFDSketch(BatchFDSketch):
     """
@@ -404,7 +402,6 @@ class CWSparseSketch(Sketch):
         cw_sparse_sketch(self.mat, sketch, self.l)
         self.sketch = sketch
         self.sketching_time = time.time() - start_time
-
 
 class JLTSketch(Sketch):
     """
