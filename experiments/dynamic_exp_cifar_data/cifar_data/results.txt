@@ -1,0 +1,12 @@
+Dynamic FD Sketch Experiment: dynamic_exp_cifar_data, Matrix: cifar_data, Initial Sketch Size: 200, End Sketch Size: 300, Batch Size: 300
+
+Change Point: 1, Runtime: 289.782528 secs, Err: 0.000059, Proj Err: 3.455631
+Change Point: 5001, Runtime: 269.489038 secs, Err: 0.000063, Proj Err: 3.457391
+Change Point: 10001, Runtime: 259.956887 secs, Err: 0.000068, Proj Err: 3.459632
+Change Point: 15001, Runtime: 251.502736 secs, Err: 0.000074, Proj Err: 3.462429
+Change Point: 20001, Runtime: 243.308544 secs, Err: 0.000079, Proj Err: 3.465686
+Change Point: 25001, Runtime: 233.203312 secs, Err: 0.000084, Proj Err: 3.470164
+Change Point: 30001, Runtime: 225.059072 secs, Err: 0.000089, Proj Err: 3.478057
+Change Point: 35001, Runtime: 216.797748 secs, Err: 0.000094, Proj Err: 3.488618
+Change Point: 40001, Runtime: 208.873381 secs, Err: 0.000099, Proj Err: 3.509357
+Change Point: 45001, Runtime: 201.694857 secs, Err: 0.000104, Proj Err: 3.555701
