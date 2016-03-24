@@ -3,6 +3,7 @@ drivers to run experiments
 """
 import os
 import numpy as np
+import cPickle as pickle
 
 from helpers import load_matrix, write_matrix
 from experiments import AlphaSketchExperiment, BatchSketchExperiment, DynamicSketchExperiment, SketchExperiment
@@ -25,13 +26,14 @@ rand_mat_2_fname = "NOT CREATED"
 rand_mat_3_fname = "NOT CREATED"
 
 cifar_mat_fname = 'data_batch_1'
+small_cifar_mat_fname = 'small_data_batch_1'
 
-MATRIX = cifar_mat_fname
+MATRIX = small_cifar_mat_fname
 
 
 #TODO: get real matrices 
 
-def alpha_experiment(mat_fname=MATRIX, l=800, alphas=None, plot=False):
+def alpha_experiment(mat_fname=MATRIX, l=200, alphas=None, plot=True):
     """
     changing alpha (FD param), fixed sketch size
     """
@@ -47,24 +49,38 @@ def alpha_experiment(mat_fname=MATRIX, l=800, alphas=None, plot=False):
     if plot:
         pfd_exp.plot_results(err=True, proj_err=True, time=True, save=True)
 
+#TODO: make it easier to plot from just a results file, right now we are faking everything
+def plot_sketches_results(exp_name, mat_fname, results_fname, sketch_types={}):
+    mat_name = os.path.splitext(mat_fname)[0]
+    results_path = os.path.join("experiments", exp_name, mat_fname, results_fname)
+    with open(results_path, "rb") as pfile: 
+        results = pickle.load(pfile)
+    # init an empty 
+    ls = np.sort(results['pfd'].keys())
+    print ls
+    sk_obj = SketchExperiment(exp_name, mat_fname, ls, sketch_types)
+    sk_obj.results = results
+    sk_obj.computed_results=True
+    sk_obj.plot_results()
+
 # next experiment should be sanity test, how do we do this? 
 # will need to compute sketches at different sizes using a variety of sketches 
 # then plot them all on the same graph 
 # theoretically works, we just need to write driver 
-def compare_sketches_experiment(mat_fname=MATRIX, l=800, alphas=None, plot=False):
+def compare_sketches_experiment(mat_fname=MATRIX, l_low=100, l_high=400, plot=True):
     print "Sketching Experiment"
-	# compare all sketches 
-	sketch_types = {'jlt': None, 'cw':None, 'fd': None, 'pfd': {'alpha': 0.2}, 'batch-pfd': {'batch_size': 400, 'alpha': 0.2}}
-	ls = np.arange(100, 1100, 100)
-	exp_name = "sketch_exp_" + os.path.splitext(mat_fname)[0]
-	sketch_exp = SketchExperiment(exp_name, mat_fname, ls, sketch_types=sketch_types)
-	sketch_exp.run_experiment()
-	sketch_exp.write_results()
-	if plot:
-		sketch_exp.plot_results(err=True, proj_err=True, time=True, save=True)
+    # compare all sketches 
+    sketch_types = {'jlt': None, 'cw':None, 'fd': None, 'pfd': {'alpha': 0.2}, 'batch-pfd': {'batch_size': 400, 'alpha': 0.2}}
+    ls = np.arange(l_low, l_high+100, (l_high - l_low)/15)
+    exp_name = "sketch_exp_" + os.path.splitext(mat_fname)[0]
+    sketch_exp = SketchExperiment(exp_name, mat_fname, ls, sketch_types=sketch_types)
+    sketch_exp.run_experiment()
+    sketch_exp.write_results()
+    if plot:
+        sketch_exp.plot_results(err=True, proj_err=True, time=True, save=True)
 
 # dynamic experiment 
-def dynamic_experiment(mat_fname=MATRIX, l1=200, l2=800, batch_size=800):
+def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=True):
     print "Dynamic Experiment"
     mat = load_matrix(mat_fname)
     ts = np.arange(1, mat.shape[0], max(mat.shape[0]/10, 1))
@@ -75,8 +91,12 @@ def dynamic_experiment(mat_fname=MATRIX, l1=200, l2=800, batch_size=800):
     if plot:
         dyn_exp.plot_results()
 
-
 # batched vs batched random 
+def batched_vs_tweaked_experiment(mat_fname=Matrix, batch_sizes, l=300, alpha=0.2):
+    # what should we do here?
+    pass 
+
+
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
     dynamic_experiment() 

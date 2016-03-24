@@ -61,6 +61,7 @@ class BatchFDSketch(Sketch):
         self.track_del = track_del
         self.delta = 0.0 
         if math.floor(self.l) >= self.m:
+            print self.l, self.m
             raise ValueError('Error: l must be smaller than m')
         if self.l >= self.mat.shape[0]:
             raise ValueError('Error: l must not be greater than n')
@@ -71,6 +72,7 @@ class BatchFDSketch(Sketch):
             self._sketch_func = self._svd_sketch
         self.sketch = None
 
+    #TODO: make this faster by doing the multiplication with the smaller matrix
     def _svd_sketch(self, mat_b):
         mat_u, vec_sigma, mat_vt = ln.svd(mat_b, full_matrices=False) 
         if (self.l + self.b_size > self.m):
@@ -129,6 +131,7 @@ class BatchFDSketch(Sketch):
         self.sketching_time = time.time() - start_time
         return self.sketch
 
+# Fast FD sketch from original Liberty paper
 class FDSketch(BatchFDSketch):
     """"
     Fast FD Sketch, can be implemented as non-randomized batched version with l = l'/2, batch_size = l'/2
@@ -192,6 +195,74 @@ class DynamicFDSketch(BatchFDSketch):
         self.del_2 = self.delta
         self.sketching_time = time.time() - start_time
         return self.sketch
+
+    def compute_actual_l_bound(self):
+        """
+        compute the theoretical bound that we should achieve 
+        """
+        if self.sketch is None:
+            self.compute_sketch()
+        # immedatiely switched 
+        if self.del_1 == 0:
+            self.l_hat = self.l2 
+            return self.l_hat 
+        c_d = self.del_2/self.del_1
+        c_l = float(self.l2) / float(self.l1)
+        self.l_hat = self.l1 * ((1.0 + c_d * c_l) / (1.0 + c_d))
+        return self.l_hat 
+
+class TweakPFDSketch(Sketch):
+    # what do we do here? well, we want to set del_ind and alpha_ind as below 
+    def __init__(self, mat, l, alpha):
+        assert (alpha <= 1 and alpha > 0)
+        assert (l <= mat.shape[1])
+        self.mat = mat
+        self.l = l
+        self.alpha = alpha
+        t = alpha * l / 2
+        self.del_ind = l - t
+        self.alpha_ind = l - 2 * t
+        self._sketch_func = self._svd_sketch
+        self.sketch = None
+        
+    # what do we do here ?
+    def _svd_sketch(self, mat_b):
+        mat_u, vec_sigma, mat_vt = ln.svd(mat_b, full_matrices=False) 
+        # obtain squared singular value for threshold
+        squared_sv_center = vec_sigma[self.del_ind] ** 2
+        # update sigma to shrink the row norms, only subtract from alpha_ind to end of vector 
+        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        # update matrix B where at least half rows are all zero
+        return np.dot(np.diagflat(sigma_tilde), mat_vt)
+
+    def compute_sketch(self):
+        start_time = time.time()
+        if self.sketch is not None:
+            return self.sketch
+        mat_b = np.zeros([self.l, self.m])
+        # compute zero valued row list
+        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        # repeat inserting each row of matrix A 
+        for i in range(0, self.mat.shape[0]):
+            # insert a row into matrix B
+            mat_b[zero_rows[0], :] = self.mat[i, :]
+            # remove zero valued row from the list
+            zero_rows.remove(zero_rows[0])
+            # if there is no more zero valued row
+            if len(zero_rows) == 0:
+                # compute SVD of matrix B, we want to find the first l
+                mat_b  = self._sketch_func(mat_b)
+                # update the zero valued row list
+                zero_rows = np.nonzero([round(s, 7) == 0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        # why do we need this here? 
+        # do we need to do a sketch one last time at the end? 
+        mat_b = self._sketch_func(mat_b)
+        # get rid of extra non-zero rows when we return 
+        self.sketch = mat_b[:self.l, :]
+        self.sketching_time = time.time() - start_time
+        return self.sketch
+
+
 
 class BatchPFDSketch(BatchFDSketch):
     """
@@ -463,7 +534,8 @@ def calculate_projection_error(mat, sketch, k=None, normalized=True):
     sketch: sketch matrix
     """
     if k is None:
-        k = mat.shape[1]/2
+        k = max(mat.shape[1]/5, 1)
+        print "Proj error k is ", k
     # take the SVD of sketch, 0 out the k+1 - last singular values, multiply U, S', Vt
     sU, ssvals, sVt = np.linalg.svd(sketch, full_matrices=False)
     ssvals[k:] = 0.0

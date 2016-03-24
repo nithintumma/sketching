@@ -1,12 +1,12 @@
 Dynamic FD Sketch Experiment: test_dynamic_exp, Matrix: med_svd_mat.txt, Initial Sketch Size: 20, End Sketch Size: 30, Batch Size: 20
 
-Change Point: 0, Runtime: 0.002836 secs, Err: 7.049180
-Change Point: 10, Runtime: 0.002974 secs, Err: 7.049180
-Change Point: 20, Runtime: 0.002716 secs, Err: 7.049180
-Change Point: 30, Runtime: 0.002592 secs, Err: 7.049180
-Change Point: 40, Runtime: 0.002379 secs, Err: 8.008003
-Change Point: 50, Runtime: 0.002416 secs, Err: 8.008003
-Change Point: 60, Runtime: 0.002417 secs, Err: 8.008003
-Change Point: 70, Runtime: 0.002260 secs, Err: 9.105602
-Change Point: 80, Runtime: 0.002289 secs, Err: 9.105602
-Change Point: 90, Runtime: 0.002100 secs, Err: 10.261129
+Change Point: 0, Runtime: 0.003131 secs, Err: 0.004247, Proj Err: 1.000597
+Change Point: 10, Runtime: 0.002727 secs, Err: 0.004247, Proj Err: 1.000597
+Change Point: 20, Runtime: 0.002648 secs, Err: 0.004247, Proj Err: 1.000597
+Change Point: 30, Runtime: 0.002647 secs, Err: 0.004247, Proj Err: 1.000597
+Change Point: 40, Runtime: 0.002463 secs, Err: 0.004825, Proj Err: 1.003295
+Change Point: 50, Runtime: 0.002461 secs, Err: 0.004825, Proj Err: 1.003295
+Change Point: 60, Runtime: 0.002484 secs, Err: 0.004825, Proj Err: 1.003295
+Change Point: 70, Runtime: 0.002325 secs, Err: 0.005486, Proj Err: 1.007443
+Change Point: 80, Runtime: 0.002327 secs, Err: 0.005486, Proj Err: 1.007443
+Change Point: 90, Runtime: 0.004708 secs, Err: 0.006183, Proj Err: 1.010148
