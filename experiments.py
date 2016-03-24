@@ -108,6 +108,7 @@ class DynamicSketchExperiment(Experiment):
         self.change_points = change_points
         self.randomized = randomized
         self.batch_size = batch_size
+        self.results = {}
         self.results['l1_size'] = l1
         self.results['l2_size'] = l2
         self.results['batch_size'] = batch_size
@@ -490,8 +491,12 @@ def test_batch_exp():
     l = 30
     batch_sizes = np.arange(1, 2*l, max(l/5, 1))
     exp_name = "test_batch_exp"
-    svd_batch_exp = BatchSketchExperiment(exp_name, mat_fname, l, batch_sizes, randomized=False)
-    rand_batch_exp = BatchSketchExperiment(exp_name, mat_fname, l, batch_sizes, randomized=True)
+    svd_batch_exp = BatchSketchExperiment(exp_name, mat_fname,
+                                            l, batch_sizes,
+                                            randomized=False)
+    rand_batch_exp = BatchSketchExperiment(exp_name, mat_fname,
+                                            l, batch_sizes,
+                                            randomized=True)
     svd_batch_exp.run_experiment()
     rand_batch_exp.run_experiment()
     plot_batched_experiments(svd_batch_exp, rand_batch_exp)

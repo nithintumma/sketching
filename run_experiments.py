@@ -11,14 +11,7 @@ from experiments import AlphaSketchExperiment, BatchSketchExperiment, DynamicSke
 
 EXPERIMENT_MATRIX_DIR = 'experiment_matrices/'
 
-"""
-TODOS:
-1) DONE: Alpha experiment 
-2) proof of concept for sketching (figure out hashing, write Compensative, Lossy)
-3) Dynamic Sketch sizes 
-"""
-
-# random matrices 
+# random matrices
 rand_mat_1_fname = 'rand_10000_2000.txt'
 # larger
 rand_mat_2_fname = "NOT CREATED"
@@ -27,11 +20,8 @@ rand_mat_3_fname = "NOT CREATED"
 
 cifar_mat_fname = 'data_batch_1'
 small_cifar_mat_fname = 'small_data_batch_1'
-
-MATRIX = small_cifar_mat_fname
-
-
-#TODO: get real matrices 
+large_cifar_mat_fname = 'cifar_data'
+MATRIX = large_cifar_mat_fname
 
 def alpha_experiment(mat_fname=MATRIX, l=200, alphas=None, plot=True):
     """
@@ -49,13 +39,12 @@ def alpha_experiment(mat_fname=MATRIX, l=200, alphas=None, plot=True):
     if plot:
         pfd_exp.plot_results(err=True, proj_err=True, time=True, save=True)
 
-#TODO: make it easier to plot from just a results file, right now we are faking everything
+# we are initing an empty class, seems wasteful 
 def plot_sketches_results(exp_name, mat_fname, results_fname, sketch_types={}):
     mat_name = os.path.splitext(mat_fname)[0]
     results_path = os.path.join("experiments", exp_name, mat_fname, results_fname)
     with open(results_path, "rb") as pfile: 
         results = pickle.load(pfile)
-    # init an empty 
     ls = np.sort(results['pfd'].keys())
     print ls
     sk_obj = SketchExperiment(exp_name, mat_fname, ls, sketch_types)
@@ -63,10 +52,6 @@ def plot_sketches_results(exp_name, mat_fname, results_fname, sketch_types={}):
     sk_obj.computed_results=True
     sk_obj.plot_results()
 
-# next experiment should be sanity test, how do we do this? 
-# will need to compute sketches at different sizes using a variety of sketches 
-# then plot them all on the same graph 
-# theoretically works, we just need to write driver 
 def compare_sketches_experiment(mat_fname=MATRIX, l_low=100, l_high=400, plot=True):
     print "Sketching Experiment"
     # compare all sketches 
@@ -83,6 +68,7 @@ def compare_sketches_experiment(mat_fname=MATRIX, l_low=100, l_high=400, plot=Tr
 def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=True):
     print "Dynamic Experiment"
     mat = load_matrix(mat_fname)
+    # changepoints 
     ts = np.arange(1, mat.shape[0], max(mat.shape[0]/10, 1))
     exp_name = "dynamic_exp_" + os.path.splitext(mat_fname)[0]
     dyn_exp = DynamicSketchExperiment(exp_name, mat_fname, l1, l2, batch_size, ts, randomized=False)
@@ -99,4 +85,8 @@ def batched_vs_tweaked_experiment(mat_fname=Matrix, batch_sizes, l=300, alpha=0.
 
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
-    dynamic_experiment() 
+    dynamic_experiment(mat_fname=large_cifar_mat_fname,
+                        l1=200,
+                        l2=300,
+                        batch_size=300,
+                        plot=False) 
