@@ -33,7 +33,7 @@ class Experiment(object):
             if e.errno != 17:
                 raise
             pass
-        if hasattr(self, results):
+        if hasattr(self, "results"):
             self.results['exp_dir'] = self.exp_dir
             self.results['mat_fname'] = self.mat_fname
         else:
