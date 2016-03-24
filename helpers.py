@@ -44,3 +44,17 @@ def get_cifar_matrix(fname, path='../../data/cifar-10-batches-py'):
     fo.close()
     write_matrix(dict["data"], fname)
 
+def get_all_cifar_matrices(path='../../data/cifar-10-batches-py'):
+    fname_pre = "data_batch_"
+    mat = None
+    for i in range(1, 6):
+        fname = "%s%d"  %(fname_pre, i)
+        f_path = os.path.join(path, fname)
+        fo = open(f_path, "rb")
+        d = pickle.load(fo)
+        if mat is None:
+            mat = d['data']
+        else:
+            mat = np.vstack((mat, d['data']))
+    print mat.shape
+    write_matrix(mat, "cifar_data")
