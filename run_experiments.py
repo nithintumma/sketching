@@ -78,7 +78,9 @@ def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=Tr
         dyn_exp.plot_results()
 
 # batched vs batched random 
-def batched_vs_tweaked_experiment(mat_fname=Matrix, batch_sizes, l=300, alpha=0.2):
+def batched_vs_tweaked_experiment(mat_fname=MATRIX, batch_sizes=None, l=300, alpha=0.2):
+    if batch_sizes is None:
+        batch_sizes = [l/2, l, 2*l]
     # what should we do here?
     pass 
 
