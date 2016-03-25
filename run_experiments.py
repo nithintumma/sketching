@@ -80,13 +80,13 @@ def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=Tr
         dyn_exp.plot_results()
 
 # batched vs batched random 
-def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1.1, 0.1)):
+def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1.1, 0.1), fast=False):
     # what is init signature? 
     print "Tweak vs Batched Experiment"
     #mat = load_matrix(mat_fname)
     #def __init__(self, exp_name, mat_fname, l, alphas, runs=3, randomized=False):
     exp_name = "tweak_batch_exp_" + os.path.splitext(mat_fname)[0]
-    exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, l, alphas, runs=1)
+    exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, l, alphas, runs=3, fast=fast)
     exp.run_experiment()
     exp.write_results()
 
@@ -97,14 +97,12 @@ def completed_experiments():
                     batch_size=300,
                     plot=False) 
 
-
-
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
-    #tweak_vs_batched_experiment(mat_fname=small_cifar_mat_fname, l=200, alphas=np.arange(0.1, 1.1, 0.1))
-    dynamic_experiment(mat_fname=large_cifar_mat_fname,
-                    l1=200,
-                    l2=400,
-                    batch_size=300,
-                    plot=False) 
+    tweak_vs_batched_experiment(mat_fname=cifar_mat_fname, 
+                                l=200, 
+                                alphas=np.arange(0.1, 1.1, 0.1), 
+                                fast=True)
 
+
+# what experiments? want to run tweak vs batched on a large dataset
