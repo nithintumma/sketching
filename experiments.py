@@ -398,6 +398,62 @@ class BatchSketchExperiment(Experiment):
             self.run_experiment()
         super(BatchSketchExperiment, self).plot_results(err=False, proj_err=proj_err, time=time, save=save)
 
+class BatchRandomPFDSketchExperiment(Experiment):
+    """
+    leave l fixed
+    leave alpha fixed
+    change batch size
+    compare runtime of Batch PFD with Randomized Batched PFD
+    """
+    def __init__(self, exp_name, mat_fname, l, alpha, batch_sizes, runs=1):
+        # should we update the exp_name to include alpha? probably 
+        self.l = l
+        self.alpha = alpha
+        self.batch_sizes = batch_sizes
+        # number of trials to average over for timing, err 
+        self.runs = runs
+        super(BatchRandomPFDSketchExperiment, self).__init__(exp_name, mat_fname, batch_sizes, "Batch Size")
+
+    def run_experiment(self):
+        self.results['rand'] = {}
+        self.results['svd'] = {}
+        sketch_objs = []
+        for b in self.batch_sizes:
+            svd_results = []
+            rand_results = []
+            for i in range(self.runs):
+                svd_sketch = BatchPFDSketch(self.mat, self.l, b, self.alpha, randomized=False)
+                svd_sketch.compute_sketch()
+                svd_results.append((svd_sketch.sketching_time, 
+                                    svd_sketch.sketch_err(), 
+                                    svd_sketch.sketch_projection_err()))
+
+                rand_sketch = BatchPFDSketch(self.mat, self.l, b, self.alpha, randomized=True)
+                rand_sketch.compute_sketch()
+                rand_results.append((rand_sketch.sketching_time, 
+                                    rand_sketch.sketch_err(), 
+                                    rand_sketch.sketch_projection_err()))
+
+            svd_times, svd_errs, svd_proj_errs = zip(*svd_results)
+            self.results['svd'][b] = {'time': np.mean(svd_times),
+                                        'err': np.mean(svd_errs),
+                                        'proj_err': np.mean(svd_proj_errs)}
+
+            rand_times, rand_errs, rand_proj_errs = zip(*rand_results)            
+            self.results['rand'][b] = {"time": np.mean(rand_times),
+                                        'err': np.mean(rand_errs), 
+                                        'proj_err': np.mean(rand_proj_errs)}
+        self.sketch_objs = sketch_objs
+        self.computed_results = True
+        return self.results 
+
+    def write_results(self):
+        super(BatchRandomPFDSketchExperiment, self).write_results(only_pickle=True)
+ 
+    def plot_results(self):
+        # call the appropriate function from plot results 
+        raise Exception("Not implemented yet")
+
 def test_batch_exp():
     mat_fname = "med_svd_mat.txt"
     l = 30
@@ -447,5 +503,15 @@ def test_dyn_exp():
     dyn_exp.plot_results()
     dyn_exp.write_results()
 
+def test_rand_exp():
+    mat_fname = "med_svd_mat.txt"
+    l = 10
+    batch_sizes =[5, 10, 20]
+    alpha = 0.2
+    exp_name = 'rand_bpfd_experiment'
+    exp = BatchRandomPFDSketchExperiment(exp_name, mat_fname, l, alpha, batch_sizes, runs=3)
+    exp.run_experiment()
+    exp.write_results()
+
 if __name__ == "__main__":
-    test_dyn_exp()
+    test_rand_exp()

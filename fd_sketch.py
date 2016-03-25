@@ -312,7 +312,7 @@ class BatchPFDSketch(BatchFDSketch):
         mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
         squared_sv_center = vec_sigma[self.del_ind] ** 2
         sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
-        return np.dot(np.diagflat(sigma_tilda), mat_vt)
+        return np.dot(np.diagflat(sigma_tilde), mat_vt)
 
 class PFDSketch(BatchPFDSketch):
     """

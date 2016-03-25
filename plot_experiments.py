@@ -160,5 +160,7 @@ def plot_batched_sketch_experiment(results_fname, results_rand_fname, save=True)
 	pass
 
 if __name__ == "__main__":
-	fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
-	plot_tweak_batched_experiment(fname, save=True)
+    fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
+    fname = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
+    plot_dynamic_sketch_experiment(fname, save=True)
+	#plot_tweak_batched_experiment(fname, save=True)
