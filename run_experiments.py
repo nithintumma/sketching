@@ -8,7 +8,8 @@ import cPickle as pickle
 from helpers import load_matrix, write_matrix
 from experiments import (AlphaSketchExperiment, BatchSketchExperiment, 
                             DynamicSketchExperiment, SketchExperiment,
-                            TweakVsBatchPFDSketchExperiment)
+                            TweakVsBatchPFDSketchExperiment, 
+                            BatchRandomPFDSketchExperiment)
 
 
 EXPERIMENT_MATRIX_DIR = 'experiment_matrices/'
@@ -79,7 +80,8 @@ def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=Tr
     if plot:
         dyn_exp.plot_results()
 
-# batched vs batched random 
+
+# tweak(Fast) vs batched PFD 
 def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1.1, 0.1), fast=False):
     # what is init signature? 
     print "Tweak vs Batched Experiment"
@@ -87,6 +89,14 @@ def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1
     #def __init__(self, exp_name, mat_fname, l, alphas, runs=3, randomized=False):
     exp_name = "tweak_batch_exp_" + os.path.splitext(mat_fname)[0]
     exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, l, alphas, runs=3, fast=fast)
+    exp.run_experiment()
+    exp.write_results()
+
+# batched vs batched random (changing batch size) 
+def rand_batch_experiment(mat_fname=MATRIX, l=200, alpha=0.2, batch_sizes, runs=2):
+    print "Randomized Batched Experiment"
+    exp_name =  "rand_batch_exp_" + os.path.splitext(mat_fname)[0]
+    exp = BatchRandomPFDSketchExperiment(exp_name, mat_fname, l, alpha, batch_sizes, runs=runs)
     exp.run_experiment()
     exp.write_results()
 
@@ -99,11 +109,11 @@ def completed_experiments():
 
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
-    dynamic_experiment(mat_fname=large_cifar_mat_fname,
-                    l1=200,
-                    l2=600,
-                    batch_size=500,
-                    plot=False) 
+    l = 200
+    batch_sizes = np.arange(l/5, 5*l, l/2)
+    rand_batch_experiment(mat_fname=large_cifar_mat_fname,
+                            l = 200, 
+                            alpha=0.2,
+                            batch_sizes = batch_sizes, 
+                            runs=2)
 
-
-# what experiments? want to run tweak vs batched on a large dataset

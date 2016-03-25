@@ -419,6 +419,7 @@ class BatchRandomPFDSketchExperiment(Experiment):
         self.results['svd'] = {}
         sketch_objs = []
         for b in self.batch_sizes:
+            print "Testing: ", b
             svd_results = []
             rand_results = []
             for i in range(self.runs):
