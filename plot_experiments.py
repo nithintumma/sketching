@@ -4,56 +4,7 @@ import cPickle as pickle
 import os
 from experiments import DynamicSketchExperiment 
 
-# make this just take in result fnames 
-def plot_batched_experiments(svd_batch_exp, rand_batch_exp, err=True, proj_err=True, time=True, save=True):
-    results = {"random": rand_batch_exp.results, "svd": svd_batch_exp.results}
-    if err: 
-        fig = plt.figure()
-        plt.grid()
-        rand_errs = [results['random'][b]['err'] for b in rand_batch_exp.batch_sizes]
-        svd_errs = [results['svd'][b]['err'] for b in svd_batch_exp.batch_sizes]
-        # we should make sure that we tested the same batch sizes
-        plt.plot(rand_batch_exp.batch_sizes, rand_errs, '-o', label='Randomized')
-        plt.plot(svd_batch_exp.batch_sizes, svd_errs, '-o', label='SVD')
-        plt.xlabel("Sketch Size")
-        plt.ylabel("Covariance Reconstruction Error")
-        plt.legend(loc="best")
-        if save:
-            fig.savefig(os.path.join(svd_batch_exp.exp_dir, "err_plt.png"))
-        else:
-            fig.show()
-    if proj_err: 
-        fig = plt.figure()
-        plt.grid()
-        rand_errs = [results['random'][b]['proj_err'] for b in rand_batch_exp.batch_sizes]
-        svd_errs = [results['svd'][b]['proj_err'] for b in svd_batch_exp.batch_sizes]
-        # we should make sure that we tested the same batch sizes
-        plt.plot(rand_batch_exp.batch_sizes, rand_errs, '-o', label='Randomized')
-        plt.plot(svd_batch_exp.batch_sizes, svd_errs, '-o', label='SVD')
-        plt.xlabel("Sketch Size")
-        plt.ylabel("Projection Error")
-        plt.legend(loc="best")
-        if save:
-            fig.savefig(os.path.join(svd_batch_exp.exp_dir, "proj_err_plt.png"))
-        else:
-            fig.show()
-    if time: 
-        fig = plt.figure()
-        plt.grid()
-        rand_times = [results['random'][b]['time'] for b in rand_batch_exp.batch_sizes]
-        svd_times = [results['svd'][b]['time'] for b in svd_batch_exp.batch_sizes]
-        # we should make sure that we tested the same batch sizes
-        plt.plot(rand_batch_exp.batch_sizes, rand_times, '-o', label='Randomized')
-        plt.plot(svd_batch_exp.batch_sizes, svd_times, '-o', label='SVD')
-        plt.xlabel("Sketch Size")
-        plt.ylabel("Runtime (s)")
-        plt.legend(loc="best")
-        if save:
-            fig.savefig(os.path.join(svd_batch_exp.exp_dir, "time_plt.png"))
-        else:
-            fig.show()
-
-# get this from the experiments fun
+# changepoint vs 
 def plot_dynamic_sketch_experiment(results_fname, save=True):
 	"""
 	independent variable: Changepoint
@@ -107,6 +58,8 @@ def plot_dynamic_sketch_experiment(results_fname, save=True):
 	else:
 		fig.show()
 
+# fastPFD vs Batched PFD 
+# maybe we should run this on (1 + \alpha)*l size?? 
 def plot_tweak_batched_experiment(results_fname, save=True):
 	# plot alphas vs runtime, cov_err, and reconstruction error 
 	with open(results_fname, "rb") as f:
@@ -151,9 +104,8 @@ def plot_tweak_batched_experiment(results_fname, save=True):
 	else:
 		fig.show()
 
-# do we also want to create a function for alpha experiment? 
+# do we also want to create a function to plot alpha experiment? 
 # we have the data here on alpha choice tho! cause we also plot errors 
-
 def plot_batched_sketch_experiment(results_fname, save=True):
 	with open(results_fname, "rb") as f:
 		results = pickle.load(f)

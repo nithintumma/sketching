@@ -60,11 +60,9 @@ class BatchFDSketch(Sketch):
         self.b_size = b_size
         self.track_del = track_del
         self.delta = 0.0 
-        if math.floor(self.l) >= self.m:
-            print self.l, self.m
+        if (math.floor(self.l) > min(self.m, self.mat.shape[0])):
+            print self.l, self.mat.shape[0], self.m
             raise ValueError('Error: l must be smaller than m')
-        if self.l >= self.mat.shape[0]:
-            raise ValueError('Error: l must not be greater than n')
         self.randomized = randomized
         if self.randomized:
             self._sketch_func = self._rand_svd_sketch
@@ -130,6 +128,7 @@ class BatchFDSketch(Sketch):
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time
         return self.sketch
+
 
 # Fast FD sketch from original Liberty paper
 class FDSketch(BatchFDSketch):
@@ -313,6 +312,31 @@ class BatchPFDSketch(BatchFDSketch):
         squared_sv_center = vec_sigma[self.del_ind] ** 2
         sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
         return np.dot(np.diagflat(sigma_tilde), mat_vt)
+
+    def update_sketch(self, sketch):
+        # allows us to start with a non-zero sketch, which is useful for merging 
+        assert (sketch.shape[0] == self.l)
+        assert (sketch.shape[1] == self.mat.shape[1])
+        mat_b = np.vstack((sketch, np.zeros((self.b_size, sketch.shape[1]))))
+        # compute zero valued row list
+        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        # repeat inserting each row of matrix A 
+        for i in range(0, self.mat.shape[0]):
+            # might need to move these around! in case sketch comes in full
+            # insert a row into matrix B
+            mat_b[zero_rows[0], :] = self.mat[i, :]
+            # remove zero valued row from the list
+            zero_rows.remove(zero_rows[0])
+            # if there is no more zero valued row
+            if len(zero_rows) == 0:
+                # compute SVD of matrix B, we want to find the first l
+                mat_b  = self._sketch_func(mat_b)
+                # update the zero valued row list
+                zero_rows = np.nonzero([round(s, 7) == 0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        mat_b = self._sketch_func(mat_b)
+        # get rid of extra b_size rows when we return 
+        self.sketch = mat_b[:self.l, :]
+        return self.sketch
 
 class PFDSketch(BatchPFDSketch):
     """
