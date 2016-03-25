@@ -143,10 +143,10 @@ def plot_tweak_batched_experiment(results_fname, save=True):
 	ax_arr[2].legend(loc='best')
 
 	plt.tight_layout()
-	for ax in ax_arr:
+	for ax in ax_arr[:2]:
 		ax.grid()
 		ax.set_yscale('log')
-		
+
 	# save plot 
 	if save:
 		fig.savefig(os.path.join(results['exp_dir'], "results.png"))
