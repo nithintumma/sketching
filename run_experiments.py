@@ -101,4 +101,10 @@ def completed_experiments():
 
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
-    tweak_vs_batched_experiment(mat_fname=small_cifar_mat_fname, l=200, alphas=np.arange(0.1, 1.1, 0.1))
+    #tweak_vs_batched_experiment(mat_fname=small_cifar_mat_fname, l=200, alphas=np.arange(0.1, 1.1, 0.1))
+    dynamic_experiment(mat_fname=large_cifar_mat_fname,
+                    l1=200,
+                    l2=400,
+                    batch_size=300,
+                    plot=False) 
+
