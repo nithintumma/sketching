@@ -47,7 +47,7 @@ def plot_dynamic_sketch_experiment(results_fname, save=True):
 	ax_arr[2].hlines(l1, xlims[0], xlims[1], "r", label='l1')
 	ax_arr[2].hlines(l2, xlims[0], xlims[1], "r", label='l2')
 	ax_arr[2].set_ylabel("Bound on Realized L")
-
+	ax_arr[2].set_ylim(max(l1/1.1, 0), l2 * 1.1)
 	# set up plots 
 	plt.tight_layout()
 	for ax in ax_arr:
@@ -58,10 +58,14 @@ def plot_dynamic_sketch_experiment(results_fname, save=True):
 	else:
 		fig.show()
 
+def plot_tweak_batched_experiment(results_fname, save=True):
+	# plot alphas vs runtime, cov_err, and reconstruction error 
+	pass 
+
 def plot_batched_sketch_experiment(results_fname, results_rand_fname, save=True):
 	pass
 
 if __name__ == "__main__":
-	#fname = "experiments/dynamic_exp_data_batch_1/data_batch_1/results.p"
-	fname = "temp.p"
+	fname = "experiments/dynamic_exp_cifar_data/cifar_data/results.p"
+	#fname = "temp.p"
 	plot_dynamic_sketch_experiment(fname, save=True)

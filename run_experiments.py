@@ -6,7 +6,9 @@ import numpy as np
 import cPickle as pickle
 
 from helpers import load_matrix, write_matrix
-from experiments import AlphaSketchExperiment, BatchSketchExperiment, DynamicSketchExperiment, SketchExperiment
+from experiments import (AlphaSketchExperiment, BatchSketchExperiment, 
+                            DynamicSketchExperiment, SketchExperiment,
+                            TweakVsBatchPFDSketchExperiment)
 
 
 EXPERIMENT_MATRIX_DIR = 'experiment_matrices/'
@@ -78,17 +80,25 @@ def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=Tr
         dyn_exp.plot_results()
 
 # batched vs batched random 
-def batched_vs_tweaked_experiment(mat_fname=MATRIX, batch_sizes=None, l=300, alpha=0.2):
-    if batch_sizes is None:
-        batch_sizes = [l/2, l, 2*l]
-    # what should we do here?
-    pass 
+def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1.1, 0.1)):
+    # what is init signature? 
+    print "Tweak vs Batched Experiment"
+    #mat = load_matrix(mat_fname)
+    #def __init__(self, exp_name, mat_fname, l, alphas, runs=3, randomized=False):
+    exp_name = "tweak_batch_exp_" + os.path.splitext(mat_fname)[0]
+    exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, l, alphas, runs=1)
+    exp.run_experiment()
+    exp.write_results()
+
+def completed_experiments():
+    dynamic_experiment(mat_fname=large_cifar_mat_fname,
+                    l1=200,
+                    l2=300,
+                    batch_size=300,
+                    plot=False) 
+
 
 
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
-    dynamic_experiment(mat_fname=large_cifar_mat_fname,
-                        l1=200,
-                        l2=300,
-                        batch_size=300,
-                        plot=False) 
+    tweak_vs_batched_experiment(mat_fname=small_cifar_mat_fname, l=200, alphas=np.arange(0.1, 1.1, 0.1))

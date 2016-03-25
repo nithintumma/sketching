@@ -9,7 +9,7 @@ import cPickle as pickle
 
 from helpers import load_matrix, write_matrix
 from fd_sketch import (JLTSketch, CWSparseSketch, FDSketch, BatchFDSketch, PFDSketch, 
-        BatchPFDSketch, DynamicFDSketch, calculateError, squaredFrobeniusNorm) 
+        BatchPFDSketch, DynamicFDSketch, TweakPFDSketch, calculateError, squaredFrobeniusNorm) 
 
 # CONSTANT DIRECTORIES  
 MATRIX_DIR = 'test_matrices'
@@ -308,16 +308,17 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
         self.alphas = alphas
         self.runs = runs
         self.randomized = randomized
-        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, mat_fname, batch_sizes, "Alpha")
+        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, mat_fname, alphas, "Alpha")
 
     def run_experiment(self):
         # compute sketches for each batch size, then save the results to a dictionary, 
         sketch_objs = []
         self.results = {"tweak": {}, "batch": {}}
-        for a in self.alpha:
+        for a in self.alphas:
+            print "Testing ", a
             times = []
-            for i in self.runs:
-                sketch_obj = BatchPFDSketch(self.mat, self.l, self.l, self.alpha, randomized=self.randomized)
+            for i in range(self.runs):
+                sketch_obj = BatchPFDSketch(self.mat, self.l, self.l, a, randomized=self.randomized)
                 # compute the sketch 
                 sketch_obj.compute_sketch()
                 times.append(sketch_obj.sketching_time)
@@ -326,12 +327,12 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
                                         "proj_err": sketch_obj.sketch_projection_err()}
             sketch_objs.append(sketch_obj)
             times = []
-            for i in self.runs:
+            for i in range(self.runs):
                 #TODO: do we actually want 2 l here? 
-                sketch_obj = TweakPFDSketch(self.mat, 2 * self.l, self.alpha, randomized=self.randomized)
+                sketch_obj = TweakPFDSketch(self.mat, 2 * self.l, a)
                 sketch_obj.compute_sketch()
                 times.append(sketch_obj.sketching_time)
-            sketch_obj.sketch = sketch_obj.sketch[:l, :]
+            sketch_obj.sketch = sketch_obj.sketch[:self.l, :]
             self.results["tweak"][a] = {"time": np.mean(times), 
                                         "err": sketch_obj.sketch_err(),
                                         "proj_err": sketch_obj.sketch_projection_err()}

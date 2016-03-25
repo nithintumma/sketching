@@ -239,7 +239,7 @@ class TweakPFDSketch(Sketch):
         start_time = time.time()
         if self.sketch is not None:
             return self.sketch
-        mat_b = np.zeros([self.l, self.m])
+        mat_b = np.zeros([self.l, self.mat.shape[1]])
         # compute zero valued row list
         zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # repeat inserting each row of matrix A 
