@@ -211,8 +211,8 @@ class DynamicFDSketch(BatchFDSketch):
         self.l_hat = self.l1 * ((1.0 + c_d * c_l) / (1.0 + c_d))
         return self.l_hat 
 
+# Fast PFD sketch
 class TweakPFDSketch(Sketch):
-    # what do we do here? well, we want to set del_ind and alpha_ind as below 
     def __init__(self, mat, l, alpha):
         assert (alpha <= 1 and alpha > 0)
         assert (l <= mat.shape[1])
@@ -239,7 +239,7 @@ class TweakPFDSketch(Sketch):
         start_time = time.time()
         if self.sketch is not None:
             return self.sketch
-        mat_b = np.zeros([self.l, self.m])
+        mat_b = np.zeros([self.l, self.mat.shape[1]])
         # compute zero valued row list
         zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # repeat inserting each row of matrix A 
@@ -261,8 +261,6 @@ class TweakPFDSketch(Sketch):
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time
         return self.sketch
-
-
 
 class BatchPFDSketch(BatchFDSketch):
     """
@@ -404,7 +402,6 @@ class CWSparseSketch(Sketch):
         cw_sparse_sketch(self.mat, sketch, self.l)
         self.sketch = sketch
         self.sketching_time = time.time() - start_time
-
 
 class JLTSketch(Sketch):
     """

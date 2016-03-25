@@ -9,7 +9,7 @@ import cPickle as pickle
 
 from helpers import load_matrix, write_matrix
 from fd_sketch import (JLTSketch, CWSparseSketch, FDSketch, BatchFDSketch, PFDSketch, 
-        BatchPFDSketch, DynamicFDSketch, calculateError, squaredFrobeniusNorm) 
+        BatchPFDSketch, DynamicFDSketch, TweakPFDSketch, calculateError, squaredFrobeniusNorm) 
 
 # CONSTANT DIRECTORIES  
 MATRIX_DIR = 'test_matrices'
@@ -105,6 +105,8 @@ class DynamicSketchExperiment(Experiment):
     def __init__(self, exp_name, mat_fname, l1, l2, batch_size, change_points, randomized=False):
         self.l1 = l1
         self.l2 = l2
+        # so we can run multiple ones at the same time 
+        exp_name = "%s_%d_%d" %(exp_name, l1, l2)
         self.change_points = change_points
         self.randomized = randomized
         self.batch_size = batch_size
@@ -159,58 +161,7 @@ class DynamicSketchExperiment(Experiment):
         super(DynamicSketchExperiment, self).write_results(header)
 
     def plot_results(self, err=True, proj_err=True, time=True, save=True):
-        if not self.computed_results:
-            self.run_experiment()
-        # we need to add the l1 and l2 sketch errs to the error plot 
-        if (self.dependent_vars is None) or (self.results is None):
-            raise Exception("Need to set dependent vars and run experiment")
-        if err:
-            # plot error as a function of batch size 
-            fig = plt.figure()
-            self._set_plot()
-            errs = [self.results[d]["err"] for d in self.dependent_vars]
-            plt.plot(self.dependent_vars, errs, '-o', color='b', label='cov err')
-            l1_err = self.results['l1']['err']
-            l2_err = self.results['l2']['err']
-            print self.dependent_vars[0], self.dependent_vars[-1]
-            plt.hlines(l1_err, self.dependent_vars[0], self.dependent_vars[-1], "g", label='l1 Err')
-            plt.hlines(l2_err, self.dependent_vars[0], self.dependent_vars[-1], "r", label='l2 Err')
-            plt.xlabel(self.dependent_var_name)
-            plt.ylabel("Covariance Reconstruction Error")
-            if save:
-                fig.savefig(os.path.join(self.exp_dir, "err_plt.png"))
-            else:
-                fig.show()
-        if proj_err:
-            fig = plt.figure()
-            self._set_plot()
-            errs = [self.results[d]["proj_err"] for d in self.dependent_vars]
-            plt.plot(self.dependent_vars, errs, '-o', color='b', label='proj err')
-            l1_err = self.results['l1']['proj_err']
-            l2_err = self.results['l2']['proj_err']
-            plt.hlines(l1_err, self.dependent_vars[0], self.dependent_vars[-1], "g", label='l1 Err')
-            plt.hlines(l2_err, self.dependent_vars[0], self.dependent_vars[-1], "r", label='l2 Err')
-            plt.xlabel(self.dependent_var_name)
-            plt.ylabel("Projection Error")
-            if save:
-                fig.savefig(os.path.join(self.exp_dir, "proj_err_plt.png"))
-            else:
-                fig.show()
-        if True:
-            # plot l_hat for each 
-            fig = plt.figure()
-            self._set_plot()
-            l_hats = [self.results[d]["l_bound"] for d in self.dependent_vars]
-            plt.plot(self.dependent_vars, l_hats, '-o', label="Realized l")
-            plt.xlabel(self.dependent_var_name)
-            plt.ylabel("Bound on Realized Sketch Size")
-            #plt.hlines(self.l1, self.dependent_vars[0], self.dependent_vars[-1], "g", label='l1')
-            #plt.hlines(self.l2, self.dependent_vars[0], self.dependent_vars[-1], "r", label='l2')
-            plt.legend(loc='best')
-            if save:
-                fig.savefig(os.path.join(self.exp_dir, "l_hat_plt.png"))
-            else:
-                fig.show()
+        raise Exception("Not supported ATM")
         super(DynamicSketchExperiment, self).plot_results(err=False, proj_err=False, time=time, save=save)
 
 class AlphaSketchExperiment(Experiment):
@@ -345,7 +296,7 @@ class SketchExperiment(Experiment):
             else:
                 fig.show()
 
-# maybe we should run tweaked on 2l rows? then it is comparable to our sketch on l rows? 
+# we should run tweaked on 2l rows? then it is comparable to our sketch on l rows? 
 class TweakVsBatchPFDSketchExperiment(Experiment):
     """
     compare tweaked PFD with batched PFD for a range of alphas 
@@ -357,16 +308,17 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
         self.alphas = alphas
         self.runs = runs
         self.randomized = randomized
-        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, mat_fname, batch_sizes, "Alpha")
+        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, mat_fname, alphas, "Alpha")
 
     def run_experiment(self):
         # compute sketches for each batch size, then save the results to a dictionary, 
         sketch_objs = []
         self.results = {"tweak": {}, "batch": {}}
-        for a in self.alpha:
+        for a in self.alphas:
+            print "Testing ", a
             times = []
-            for i in self.runs:
-                sketch_obj = BatchPFDSketch(self.mat, self.l, self.l, self.alpha, randomized=self.randomized)
+            for i in range(self.runs):
+                sketch_obj = BatchPFDSketch(self.mat, self.l, self.l, a, randomized=self.randomized)
                 # compute the sketch 
                 sketch_obj.compute_sketch()
                 times.append(sketch_obj.sketching_time)
@@ -375,12 +327,12 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
                                         "proj_err": sketch_obj.sketch_projection_err()}
             sketch_objs.append(sketch_obj)
             times = []
-            for i in self.runs:
+            for i in range(self.runs):
                 #TODO: do we actually want 2 l here? 
-                sketch_obj = TweakPFDSketch(self.mat, 2 * self.l, self.alpha, randomized=self.randomized)
+                sketch_obj = TweakPFDSketch(self.mat, 2 * self.l, a)
                 sketch_obj.compute_sketch()
                 times.append(sketch_obj.sketching_time)
-            sketch_obj.sketch = sketch_obj.sketch[:l, :]
+            sketch_obj.sketch = sketch_obj.sketch[:self.l, :]
             self.results["tweak"][a] = {"time": np.mean(times), 
                                         "err": sketch_obj.sketch_err(),
                                         "proj_err": sketch_obj.sketch_projection_err()}
