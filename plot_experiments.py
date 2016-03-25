@@ -125,8 +125,6 @@ def plot_tweak_batched_experiment(results_fname, save=True):
 	ax_arr[0].plot(alphas, tweak_times, '-x', label='PFD Runtime')
 	ax_arr[0].set_ylabel("Runtime (s)")
 	ax_arr[0].legend(loc='best')
-
-
 	# plot covariance errors
 	batch_cov_errs = [results['batch'][a]['err'] for a in alphas]
 	tweak_cov_errs = [results['tweak'][a]['err'] for a in alphas]
@@ -156,11 +154,47 @@ def plot_tweak_batched_experiment(results_fname, save=True):
 # do we also want to create a function for alpha experiment? 
 # we have the data here on alpha choice tho! cause we also plot errors 
 
-def plot_batched_sketch_experiment(results_fname, results_rand_fname, save=True):
-	pass
+def plot_batched_sketch_experiment(results_fname, save=True):
+	with open(results_fname, "rb") as f:
+		results = pickle.load(f)
+	batch_sizes = np.sort(results['rand'].keys())
+	xlims = [0, batch_sizes[-1]]
+	fig, ax_arr = plt.subplots(3, sharex=True, figsize=(10, 30))
+	plt.ticklabel_format(style='sci', axis='y', scilimits=(-5,5))
+	# plot runtimes
+	svd_times = [results['svd'][b]['time'] for b in batch_sizes]
+	rand_times = [results['rand'][b]['time'] for b in batch_sizes]
+	ax_arr[0].plot(batch_sizes, svd_times, '-o', label='Deterministic SVD Runtime')
+	ax_arr[0].plot(batch_sizes, rand_times, '-x', label='Randomized SVD Runtime')
+	ax_arr[0].set_ylabel("Runtime (s)")
+	ax_arr[0].legend(loc='best')
+	# plot covariance errors
+	svd_cov_errs = [results['svd'][b]['err'] for b in batch_sizes]
+	rand_cov_errs = [results['rand'][b]['err'] for b in batch_sizes]
+	ax_arr[1].plot(batch_sizes, svd_cov_errs, '-o', label='Deterministic SVD Cov Err')
+	ax_arr[1].plot(batch_sizes, rand_cov_errs, '-x', label='Randomized SVD Cov Err')
+	ax_arr[1].set_ylabel("Covariance Reconstruction Error")
+	ax_arr[1].legend(loc='best')
+	# plot projection errors
+	svd_proj_errs = [results['svd'][b]['proj_err'] for b in batch_sizes]
+	rand_proj_errs = [results['rand'][b]['proj_err'] for b in batch_sizes]
+	ax_arr[2].plot(batch_sizes, svd_proj_errs, '-o', label='Deterministic SVD Proj Err')
+	ax_arr[2].plot(batch_sizes, rand_proj_errs, '-x', label='Randomized SVD Proj Err')
+	ax_arr[2].set_ylabel("Projection Error")
+	ax_arr[2].legend(loc='best')
+	# format plot 
+	plt.tight_layout()
+	for ax in ax_arr:
+		ax.grid()
+		ax.set_yscale('log')
+		ax.set_xlim(xlims)
+	if save:
+		fig.savefig(os.path.join(results['exp_dir'], "results.png"))
+	else:
+		fig.show()
 
 if __name__ == "__main__":
     fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
     fname = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
-    plot_dynamic_sketch_experiment(fname, save=True)
-	#plot_tweak_batched_experiment(fname, save=True)
+    fname = "experiments/rand_bpfd_experiment/med_svd_mat/results.p"
+    plot_batched_sketch_experiment(fname, save=True)
