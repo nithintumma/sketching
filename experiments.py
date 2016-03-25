@@ -296,24 +296,29 @@ class SketchExperiment(Experiment):
             else:
                 fig.show()
 
-# we should run tweaked on 2l rows? then it is comparable to our sketch on l rows? 
 class TweakVsBatchPFDSketchExperiment(Experiment):
+    # we should run tweaked on 2l rows? then it is comparable to our sketch on l rows? 
     """
     compare tweaked PFD with batched PFD for a range of alphas 
     goal is to show that our runtime is invariant to alpha, but theres is not 
     runs is number of times that we should repeat the experimeent for runtime 
     """
-    def __init__(self, exp_name, mat_fname, l, alphas, runs=3, randomized=False):
+    def __init__(self, exp_name, mat_fname, l, alphas, runs=3, 
+                    randomized=False, fast=True, double=False):
         self.l = l
         self.alphas = alphas
         self.runs = runs
         self.randomized = randomized
+        self.fast = fast
+        self.double=double
+        print "Fast: ", self.fast
         super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, mat_fname, alphas, "Alpha")
 
     def run_experiment(self):
         # compute sketches for each batch size, then save the results to a dictionary, 
         sketch_objs = []
-        self.results = {"tweak": {}, "batch": {}}
+        self.results['tweak'] = {}
+        self.results['batch'] = {}
         for a in self.alphas:
             print "Testing ", a
             times = []
@@ -324,18 +329,21 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
                 times.append(sketch_obj.sketching_time)
             self.results["batch"][a] = {"time": np.mean(times), 
                                         "err": sketch_obj.sketch_err(),
-                                        "proj_err": sketch_obj.sketch_projection_err()}
+                                        "proj_err": sketch_obj.sketch_projection_err(k=self.l/2)}
             sketch_objs.append(sketch_obj)
             times = []
             for i in range(self.runs):
                 #TODO: do we actually want 2 l here? 
-                sketch_obj = TweakPFDSketch(self.mat, 2 * self.l, a)
+                l = self.l
+                if self.double:
+                    l = 2 * self.l
+                sketch_obj = TweakPFDSketch(self.mat, l, a, fast=self.fast)
                 sketch_obj.compute_sketch()
                 times.append(sketch_obj.sketching_time)
             sketch_obj.sketch = sketch_obj.sketch[:self.l, :]
             self.results["tweak"][a] = {"time": np.mean(times), 
                                         "err": sketch_obj.sketch_err(),
-                                        "proj_err": sketch_obj.sketch_projection_err()}
+                                        "proj_err": sketch_obj.sketch_projection_err(k=self.l/2)}
 
             sketch_objs.append(sketch_obj)
         self.sketch_objs = sketch_objs
@@ -389,54 +397,6 @@ class BatchSketchExperiment(Experiment):
         if not self.computed_results:
             self.run_experiment()
         super(BatchSketchExperiment, self).plot_results(err=False, proj_err=proj_err, time=time, save=save)
-
-def plot_batched_experiments(svd_batch_exp, rand_batch_exp, err=True, proj_err=True, time=True, save=True):
-    results = {"random": rand_batch_exp.results, "svd": svd_batch_exp.results}
-    if err: 
-        fig = plt.figure()
-        plt.grid()
-        rand_errs = [results['random'][b]['err'] for b in rand_batch_exp.batch_sizes]
-        svd_errs = [results['svd'][b]['err'] for b in svd_batch_exp.batch_sizes]
-        # we should make sure that we tested the same batch sizes
-        plt.plot(rand_batch_exp.batch_sizes, rand_errs, '-o', label='Randomized')
-        plt.plot(svd_batch_exp.batch_sizes, svd_errs, '-o', label='SVD')
-        plt.xlabel("Sketch Size")
-        plt.ylabel("Covariance Reconstruction Error")
-        plt.legend(loc="best")
-        if save:
-            fig.savefig(os.path.join(svd_batch_exp.exp_dir, "err_plt.png"))
-        else:
-            fig.show()
-    if proj_err: 
-        fig = plt.figure()
-        plt.grid()
-        rand_errs = [results['random'][b]['proj_err'] for b in rand_batch_exp.batch_sizes]
-        svd_errs = [results['svd'][b]['proj_err'] for b in svd_batch_exp.batch_sizes]
-        # we should make sure that we tested the same batch sizes
-        plt.plot(rand_batch_exp.batch_sizes, rand_errs, '-o', label='Randomized')
-        plt.plot(svd_batch_exp.batch_sizes, svd_errs, '-o', label='SVD')
-        plt.xlabel("Sketch Size")
-        plt.ylabel("Projection Error")
-        plt.legend(loc="best")
-        if save:
-            fig.savefig(os.path.join(svd_batch_exp.exp_dir, "proj_err_plt.png"))
-        else:
-            fig.show()
-    if time: 
-        fig = plt.figure()
-        plt.grid()
-        rand_times = [results['random'][b]['time'] for b in rand_batch_exp.batch_sizes]
-        svd_times = [results['svd'][b]['time'] for b in svd_batch_exp.batch_sizes]
-        # we should make sure that we tested the same batch sizes
-        plt.plot(rand_batch_exp.batch_sizes, rand_times, '-o', label='Randomized')
-        plt.plot(svd_batch_exp.batch_sizes, svd_times, '-o', label='SVD')
-        plt.xlabel("Sketch Size")
-        plt.ylabel("Runtime (s)")
-        plt.legend(loc="best")
-        if save:
-            fig.savefig(os.path.join(svd_batch_exp.exp_dir, "time_plt.png"))
-        else:
-            fig.show()
 
 def test_batch_exp():
     mat_fname = "med_svd_mat.txt"

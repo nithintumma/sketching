@@ -47,10 +47,10 @@ class Sketch(object):
             self.compute_sketch()
         return calculateError(self.mat, self.sketch)
 
-    def sketch_projection_err(self):
+    def sketch_projection_err(self, k=None):
         if self.sketch is None:
             self.compute_sketch()
-        return calculate_projection_error(self.mat, self.sketch)
+        return calculate_projection_error(self.mat, self.sketch, k=k)
 
 class BatchFDSketch(Sketch):
     def __init__(self, mat, l, b_size, randomized=False, track_del=False):
@@ -211,17 +211,22 @@ class DynamicFDSketch(BatchFDSketch):
         self.l_hat = self.l1 * ((1.0 + c_d * c_l) / (1.0 + c_d))
         return self.l_hat 
 
-# Fast PFD sketch
+# Fast/Slow PFD sketch
 class TweakPFDSketch(Sketch):
-    def __init__(self, mat, l, alpha):
+    def __init__(self, mat, l, alpha, fast=True):
         assert (alpha <= 1 and alpha > 0)
         assert (l <= mat.shape[1])
         self.mat = mat
         self.l = l
         self.alpha = alpha
-        t = alpha * l / 2
-        self.del_ind = l - t
-        self.alpha_ind = l - 2 * t
+        if fast:
+            t = alpha * l / 2
+            self.del_ind = l - t
+            self.alpha_ind = l - 2 * t
+        else:
+            self.del_ind = l-1
+            self.alpha_ind = min(math.floor((1-alpha) * self.l), self.del_ind)
+            print "IM Slow: ", self.del_ind, self.alpha_ind 
         self._sketch_func = self._svd_sketch
         self.sketch = None
         
