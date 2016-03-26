@@ -25,7 +25,6 @@ def parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_proces
 	pool = Pool(processes=num_processes)
 	# number of rows that should be assigned to each process (last one will get any extra)
 	num_rows_per_p = mat.shape[0]/num_processes
-	print "Num_rows_per_p: ", num_rows_per_p
 	if num_rows_per_p == 0:
 		raise Exception("Cannot have more processes than matrix rows")
 	args = []
@@ -36,14 +35,12 @@ def parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_proces
 			end_ind = mat.shape[0] - 1		
 		else:
 			end_ind = (i+1) * num_rows_per_p
-		print start_ind, end_ind
 		args.append((mat[start_ind:end_ind, :],
 					 l, batch_size, alpha, 
 					 np.zeros((l, mat.shape[1]))
 					 ))
 	sketches = pool.map(_sketch_func, args)
 	# now we want to merge the sketches 
-	print "Merging %d Sketches" % len(sketches)
 	num_sketches = len(sketches)
 	while num_sketches > 1:
 		args = []
@@ -59,7 +56,6 @@ def parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_proces
 			args.append(arg_tuple)
 		sketches = pool.map(_sketch_func, args)
 		num_sketches = len(sketches)
-	print len(sketches)
 	return sketches[0]
 
 if __name__ == "__main__":

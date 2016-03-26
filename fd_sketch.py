@@ -560,7 +560,7 @@ def calculate_projection_error(mat, sketch, k=None, normalized=True):
     sketch: sketch matrix
     """
     if k is None:
-        k = max(mat.shape[1]/5, 1)
+        k = min(sketch.shape[0]/2, 100)
         print "Proj error k is ", k
     # take the SVD of sketch, 0 out the k+1 - last singular values, multiply U, S', Vt
     sU, ssvals, sVt = np.linalg.svd(sketch, full_matrices=False)

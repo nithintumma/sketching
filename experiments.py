@@ -9,7 +9,9 @@ import cPickle as pickle
 
 from helpers import load_matrix, write_matrix
 from fd_sketch import (JLTSketch, CWSparseSketch, FDSketch, BatchFDSketch, PFDSketch, 
-        BatchPFDSketch, DynamicFDSketch, TweakPFDSketch, calculateError, squaredFrobeniusNorm) 
+                        BatchPFDSketch, DynamicFDSketch, TweakPFDSketch, calculateError, 
+                        calculate_projection_error, squaredFrobeniusNorm) 
+from parallel_sketch import parallel_bpfd_sketch
 
 # CONSTANT DIRECTORIES  
 MATRIX_DIR = 'test_matrices'
@@ -130,8 +132,6 @@ class DynamicSketchExperiment(Experiment):
                                 "proj_err": sketch_obj.sketch_projection_err(),
                                 "l_bound": sketch_obj.compute_actual_l_bound()}
             sketch_objs.append(sketch_obj)
-        # add l1, l2 full sketches 
-        # is this necessary? 
         #l1_sketch = BatchFDSketch(self.mat, self.l1, self.batch_size + self.l2 - self.l1)
         l1_sketch = BatchFDSketch(self.mat, self.l1, self.batch_size)
         l1_sketch.compute_sketch()
@@ -455,6 +455,62 @@ class BatchRandomPFDSketchExperiment(Experiment):
         # call the appropriate function from plot results 
         raise Exception("Not implemented yet")
 
+# we want to see how the non-randomized and randomized BPFD scale with number of cores 
+class ParallelPFDSketchExperiment(Experiment):
+    def __init__(self, exp_name, mat_fname, l, alpha, batch_size, processors=[1, 2, 3, 4], runs=2):
+        self.l = l
+        self.alpha = alpha
+        self.batch_size = batch_size
+        self.processors = processors 
+        self.runs = runs
+        super(ParallelPFDSketchExperiment, self).__init__(exp_name, mat_fname, processors, "Cores")
+
+    def run_experiment(self):
+        self.results['rand'] = {}
+        self.results['svd'] = {} 
+        sketch_objs = []
+        for p in self.processors:
+            svd_results = []
+            rand_results = []
+            for i in range(self.runs):
+                svd_start_time = time.time()
+                svd_sketch = parallel_bpfd_sketch(self.mat, self.l, self.alpha, self.batch_size,
+                                                    randomized=False, num_processes=p)
+                svd_time = time.time() - svd_start_time
+                svd_err = calculateError(self.mat, svd_sketch)
+                svd_proj_err = calculate_projection_error(self.mat, svd_sketch, k=100)
+                svd_results.append((svd_time, svd_err, svd_proj_err))
+                sketch_objs.append(svd_sketch)
+
+                rand_start_time = time.time()
+                rand_sketch = parallel_bpfd_sketch(self.mat, self.l, self.alpha, self.batch_size,
+                                                    randomized=True, num_processes=p)
+                rand_time = time.time() - rand_start_time
+                rand_err = calculateError(self.mat, rand_sketch)
+                rand_proj_err = calculate_projection_error(self.mat, rand_sketch, k=100)
+                rand_results.append((rand_time, rand_err, rand_proj_err))
+                sketch_objs.append(rand_sketch)
+
+            svd_times, svd_errs, svd_proj_errs = zip(*svd_results)
+            self.results['svd'][p] = {'time': np.mean(svd_times),
+                                        'err': np.mean(svd_errs),
+                                        'proj_err': np.mean(svd_proj_errs)}
+
+            rand_times, rand_errs, rand_proj_errs = zip(*rand_results)
+            self.results['rand'][p] = {'time': np.mean(rand_times),
+                                        'err': np.mean(rand_errs),
+                                        'proj_err': np.mean(rand_proj_errs)}
+
+        self.sketch_objs = sketch_objs
+        self.computed_results = True
+        return self.results 
+
+    def write_results(self):
+        super(ParallelPFDSketchExperiment, self).write_results(only_pickle=True)
+
+    def plot_results(self):
+        raise Exception("Not Implemented")
+
 def test_batch_exp():
     mat_fname = "med_svd_mat.txt"
     l = 30
@@ -509,10 +565,21 @@ def test_rand_exp():
     l = 10
     batch_sizes =[5, 10, 20]
     alpha = 0.2
-    exp_name = 'rand_bpfd_experiment'
+    exp_name = 'test_rand_bpfd_experiment'
     exp = BatchRandomPFDSketchExperiment(exp_name, mat_fname, l, alpha, batch_sizes, runs=3)
     exp.run_experiment()
     exp.write_results()
 
+def test_par_exp():
+    mat_fname = "med_svd_mat.txt"
+    l = 10
+    batch_size = 10
+    processors =[1, 2, 4]
+    alpha = 0.2
+    exp_name = "test_par_exp"
+    exp = ParallelPFDSketchExperiment(exp_name, mat_fname, l, alpha, batch_size, processors=processors, runs=2)
+    exp.run_experiment()
+    exp.write_results()
+
 if __name__ == "__main__":
-    test_rand_exp()
+    test_par_exp()
