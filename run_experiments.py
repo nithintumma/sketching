@@ -93,9 +93,11 @@ def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1
     exp.write_results()
 
 # batched vs batched random (changing batch size) 
-def rand_batch_experiment(mat_fname=MATRIX, l=200, alpha=0.2, batch_sizes, runs=2):
+def rand_batch_experiment(mat_fname=MATRIX, l=200, alpha=0.2, batch_sizes=None, runs=2):
     print "Randomized Batched Experiment"
     exp_name =  "rand_batch_exp_" + os.path.splitext(mat_fname)[0]
+    if batch_sizes is None:
+        batch_sizes = np.arange(l/5, 5*l, l/2)
     exp = BatchRandomPFDSketchExperiment(exp_name, mat_fname, l, alpha, batch_sizes, runs=runs)
     exp.run_experiment()
     exp.write_results()
@@ -107,7 +109,6 @@ def completed_experiments():
                     batch_size=300,
                     plot=False) 
 
-# TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
     l = 200
     batch_sizes = np.arange(l/5, 5*l, l/2)
