@@ -104,7 +104,7 @@ def rand_batch_experiment(mat_fname=MATRIX, l=200, alpha=0.2, batch_sizes=None, 
     exp.run_experiment()
     exp.write_results()
 
-def run_parallel_experiment(mat_fname=MATRIX, l, alpha, batch_size, processors, runs):
+def run_parallel_experiment(mat_fname, l, alpha, batch_size, processors, runs):
     print "Parallel Experiment"
     print "Testing: ", processors
     exp_name = 'parallel_exp_' + os.path.splitext(mat_fname)[0]
@@ -122,7 +122,7 @@ def completed_experiments():
                     plot=False) 
 
 if __name__ == "__main__":
-    mat_fname = large_cifar_mat_fname
+    mat_fname = med_cifar_mat_fname
     l = 200
     alpha = 0.2
     batch_size = 2 * l
