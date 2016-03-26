@@ -470,6 +470,7 @@ class ParallelPFDSketchExperiment(Experiment):
         self.results['svd'] = {} 
         sketch_objs = []
         for p in self.processors:
+            print "Testing: ", p
             svd_results = []
             rand_results = []
             for i in range(self.runs):

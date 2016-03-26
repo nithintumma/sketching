@@ -9,7 +9,8 @@ from helpers import load_matrix, write_matrix
 from experiments import (AlphaSketchExperiment, BatchSketchExperiment, 
                             DynamicSketchExperiment, SketchExperiment,
                             TweakVsBatchPFDSketchExperiment, 
-                            BatchRandomPFDSketchExperiment)
+                            BatchRandomPFDSketchExperiment, 
+                            ParallelPFDSketchExperiment)
 
 
 EXPERIMENT_MATRIX_DIR = 'experiment_matrices/'
@@ -23,7 +24,8 @@ rand_mat_3_fname = "NOT CREATED"
 
 cifar_mat_fname = 'data_batch_1'
 small_cifar_mat_fname = 'small_data_batch_1'
-large_cifar_mat_fname = 'cifar_data'
+med_cifar_mat_fname = 'cifar_data'
+large_cifar_mat_fname = 'large_cifar_data'
 MATRIX = large_cifar_mat_fname
 
 def alpha_experiment(mat_fname=MATRIX, l=200, alphas=None, plot=True):
@@ -100,6 +102,16 @@ def rand_batch_experiment(mat_fname=MATRIX, l=200, alpha=0.2, batch_sizes, runs=
     exp.run_experiment()
     exp.write_results()
 
+def run_parallel_experiment(mat_fname=MATRIX, l, alpha, batch_size, processors, runs):
+    print "Parallel Experiment"
+    print "Testing: ", processors
+    exp_name = 'parallel_exp_' + os.path.splitext(mat_fname)[0]
+    exp = ParallelPFDSketchExperiment(exp_name, mat_fname, l, alpha, 
+                                        batch_size, processors=processors, runs=2)
+    exp.run_experiment()
+    exp.write_results()
+    print "FINISHED"
+
 def completed_experiments():
     dynamic_experiment(mat_fname=large_cifar_mat_fname,
                     l1=200,
@@ -109,11 +121,11 @@ def completed_experiments():
 
 # TODO: figure out what random algorithm fb is using, compare to what scipy has, also think about implementing one 
 if __name__ == "__main__":
+    mat_fname = large_cifar_mat_fname
     l = 200
-    batch_sizes = np.arange(l/5, 5*l, l/2)
-    rand_batch_experiment(mat_fname=large_cifar_mat_fname,
-                            l = 200, 
-                            alpha=0.2,
-                            batch_sizes = batch_sizes, 
-                            runs=2)
+    alpha = 0.2
+    batch_size = 2 * l
+    processors = [1, 2, 4, 8, 16, 32]
+    runs = 2
+    run_parallel_experiment(mat_fname, l, alpha, batch_size, processors, runs)
 
