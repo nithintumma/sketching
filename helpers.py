@@ -58,3 +58,25 @@ def get_all_cifar_matrices(path='../../data/cifar-10-batches-py'):
             mat = np.vstack((mat, d['data']))
     print mat.shape
     write_matrix(mat, "cifar_data")
+
+def aggregate_cifar_matrice(cifar_path='../../data/'):
+    fname_pre = "data_batch_"
+    path = os.path.join(cifar_path, 'cifar-10-batches-py')
+    mat = None
+    for i in range(1, 6):
+        fname = "%s%d"  %(fname_pre, i)
+        f_path = os.path.join(path, fname)
+        fo = open(f_path, "rb")
+        d = pickle.load(fo)
+        if mat is None:
+            mat = d['data']
+        else:
+            mat = np.vstack((mat, d['data']))
+    path = os.path.join(cifar_path, "cifar-100-python")    
+    fo = open(os.path.join(path, "train"), "rb")
+    d = pickle.load(fo)
+    mat = np.vstack((mat, d['data']))
+    return mat
+
+ 
+    
