@@ -1,6 +1,8 @@
 import time 
-from multiprocessing import Pool
+from multiprocessing import Pool, current_process
+
 import numpy as np
+from scipy.sparse import coo_matrix
 
 # will allow us to parallelize 
 from fd_sketch import BatchPFDSketch, calculateError, calculate_projection_error
@@ -17,6 +19,17 @@ def sketch(args):
 	sketch_obj = BatchPFDSketch(mat, l, b_size, alpha, randomized=False)
 	return sketch_obj.update_sketch(sketch)
 
+def sparse_sketch(args):
+	mat, l, b_size, alpha = args
+	sketch_obj = SparseBatchPFDSketch(mat, l, b_size, alpha, randomized=False)
+	return sketch_obj.compute_sketch()
+
+def sparse_randomized_sketch(args):
+	mat, l, b_size, alpha = args
+	sketch_obj = SparseBatchPFDSketch(mat, l, b_size, alpha, randomized=True)
+	return sketch_obj.compute_sketch()
+
+# dont use pool
 def parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_processes=2):
 	if randomized:
 		_sketch_func = randomized_sketch
@@ -32,7 +45,7 @@ def parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_proces
 		# submatrix 
 		start_ind = i*num_rows_per_p
 		if i == (num_processes - 1):
-			end_ind = mat.shape[0] - 1		
+			end_ind = mat.shape[0]		
 		else:
 			end_ind = (i+1) * num_rows_per_p
 		args.append((mat[start_ind:end_ind, :],
@@ -58,6 +71,51 @@ def parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_proces
 		num_sketches = len(sketches)
 	return sketches[0]
 
+def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_processes=2): 
+	if randomized:
+		_sparse_sketch_func = sparse_randomized_sketch
+		_sketch_func = randomized_sketch
+	else:
+		_sparse_sketch_func = sparse_sketch
+		_sketch_func = sketch
+
+	pool = Pool(processes=num_processes)
+	unique_rows = np.unique(mat.row)
+	row_inds, col_inds, data = mat.row, mat.col, mat.data 
+	num_rows_per_p = len(unique_rows)/num_processes
+    # now how do we process the actual data? we want to do something like np.findsorted 
+	breakpoints = np.searchsorted(unique_rows, [i*num_rows_per_p for i in range(num_processes)])
+	args = []
+	for i in range(num_processes):
+		if i == num_processes - 1:
+			# at last pone
+			s_ind, e_ind = breakpoints[i], len(row_inds)
+		else:
+			s_ind, e_ind = breakpoints[i], breakpoints[i+1]
+		print s_ind, e_ind 
+		# construct the sparse matrix
+		submatrix = coo_matrix((data[s_ind:e_ind],(row[s_ind:e_ind],col[s_ind:e_ind])))
+		args.append((submatrix, l, batch_size, alpha))
+	sketches = pool.map(_sparse_sketch_func, args)
+	num_sketches = len(sketches)
+	while num_sketches > 1:
+		args = []
+		stack_last = False 
+		if (num_sketches % 2) == 1:
+			stack_last = True
+		for i in range(num_sketches/2):
+			if (i == num_sketches/2 - 1) and stack_last:
+				arg_tuple = (np.vstack((sketches[2*i], sketches[-1])), 
+								l, batch_size, alpha, sketches[2*i+1])
+			else:
+				arg_tuple = (sketches[2*i], l, batch_size, alpha, sketches[2*i+1])
+			args.append(arg_tuple)
+		sketches = pool.map(_sketch_func, args)
+		num_sketches = len(sketches)
+	return sketches[0]
+
+
+# how do I test this? do I have an example file laying around somewhere? s
 if __name__ == "__main__":
 	mat_fname = 'cifar_data'
 	mat = load_matrix(mat_fname)
