@@ -1,27 +1,22 @@
 #!/usr/bin/env python
+import scipy
+import scipy.sparse as sps 
+import scipy.sparse.linalg as spslinalg
 import numpy as np
 import numpy.linalg as ln
 import math
 import sys
 import time 
 import random
-
 import os
 import subprocess 
 
 from helpers import load_matrix, write_matrix 
-
 from fbpca import pca as rand_svd 
-
-import sys
-libskylark_path = os.path.join("..", "libskylark/")
-sys.path.append(libskylark_path)
-
 # cython code for CW-13 Sparse Sketch 
 import pyximport
 pyximport.install(setup_args={'include_dirs': np.get_include()})
 from sketch import cw_sparse_sketch
-
 
 """
 additions to Python FD sketching procedure: batched version of below 
@@ -129,7 +124,6 @@ class BatchFDSketch(Sketch):
         self.sketching_time = time.time() - start_time
         return self.sketch
 
-
 # Fast FD sketch from original Liberty paper
 class FDSketch(BatchFDSketch):
     """"
@@ -139,7 +133,7 @@ class FDSketch(BatchFDSketch):
     def __init__(self, mat, l):
         super(FDSketch, self).__init__(mat, l, l, randomized=False)
 
-class DynamicFDSketch(BatchFDSketch):    
+class DynamicFDSketch(BatchFDSketch):
     """
     begin sketching with l1, after t (changepoint) rows have been added 
     sketch with l2 rows 
@@ -447,18 +441,37 @@ class JLTSketch(Sketch):
         self.sketch = np.dot(self.sketching_matrix, self.mat)
         self.sketching_time = time.time() - start_time
 
-# functions to return sketches from classes above 
-def batch_fd_sketch(mat, l, b_size, randomized=False):
-    b_sketch = BatchFDSketch(mat, l, b_size, randomized)
-    return b_sketch.compute_sketch()
+class SparseBatchPFDSketch(BatchPFDSketch):
+    def __init__(self, mat, l, batch_size, alpha, randomized=False):
+        # assume that mat is in COO format, just read in 
+        # get the non-zeros sorted
+        self.nzrow_inds = np.unique(mat.row)
+        # helps us get slices, get rows, etc. 
+        super(SparseBatchPFDSketch, self).__init__(mat.tocsr(), l, 
+                                                    batch_size, alpha, randomized=randomized)
 
-def dynamic_fd_sketch(mat, l1, l2, t, b_size, randomized=False):
-    db_sketch = DynamicFDSketch(mat, l1, l2, t, b_size, randomized)
-    return db_sketch.compute_sketch()
+    def compute_sketch(self):
+        # what do we do differently here? we need to iterate over the nzrow_inds,
+        start_time = time.time()
+        if self.sketch is not None:
+            return self.sketch
+        mat_b = np.zeros([self.l + self.b_size, self.m])
+        # compute zero valued row list
+        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        # iterate through the nzrow_inds
+        for i in self.nzrow_inds:
+            mat_b[zero_rows[0], :] = self.mat.getrow(i).todense()
+            zero_rows.remove(zero_rows[0])
+            if len(zero_rows) == 0:
+                mat_b = self._sketch_func(mat_b)
+                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        mat_b = self._sketch_func(mat_b)
+        self.sketch = mat_b[:self.l, :]
+        self.sketching_time = time.time() - start_time 
+        return self.sketch
 
-def pdf_sketch(mat, l, alpha):
-    return None
-
+    def sketch_err(self):
+        return sparse_calculate_error(self.mat, self.sketch, normalized=True)
 
 """ This is a simple and deterministic method for matrix sketch.
 The original method has been introduced in [Liberty2013]_ .
@@ -529,6 +542,19 @@ def squaredFrobeniusNorm(mat):
     :returns: squared Frobenius norm
     """
     return ln.norm(mat, ord = 'fro') ** 2
+
+def sparse_squared_frobenius_norm(mat):
+    new_mat = mat.copy()
+    new_mat.data **= 2
+    return new_mat.sum()
+
+def sparse_calculate_error(mat, sketch, normalized=True):
+    cov =  (mat.transpose()).dot(mat).todense()
+    cov_sketch = np.dot(sketch.T, sketch)
+    if normalized:
+        return (ln.norm(cov - cov_sketch, ord=2) / sparse_squared_frobenius_norm(mat))
+    else:
+        return ln.norm(cov - cov_sketch, ord=2)
 
 #TODO: change this name to calculate_covariance_err 
 def calculateError(mat, mat_b, normalized=True):

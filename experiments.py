@@ -583,4 +583,4 @@ def test_par_exp():
     exp.write_results()
 
 if __name__ == "__main__":
-    test_par_exp()
+    test_rand_exp()
