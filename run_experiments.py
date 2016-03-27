@@ -108,8 +108,14 @@ def run_parallel_experiment(mat_fname, l, alpha, batch_size, processors, runs):
     print "Parallel Experiment"
     print "Testing: ", processors
     exp_name = 'parallel_exp_' + os.path.splitext(mat_fname)[0]
+    if mat_fname[-3:] == 'mtx':
+        sparse = True
+    else:
+        sparse=False
     exp = ParallelPFDSketchExperiment(exp_name, mat_fname, l, alpha, 
-                                        batch_size, processors=processors, runs=2)
+                                        batch_size, 
+                                        processors=processors, 
+                                        runs=2, sparse=sparse)
     exp.run_experiment()
     exp.write_results()
     print "FINISHED"
