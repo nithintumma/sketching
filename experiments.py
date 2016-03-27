@@ -129,7 +129,8 @@ class DynamicSketchExperiment(Experiment):
             sketch_obj.compute_sketch()
             self.results[t] = {"time": sketch_obj.sketching_time, 
                                 "err": sketch_obj.sketch_err(),
-                                "proj_err": sketch_obj.sketch_projection_err(),
+                                "proj_err":
+sketch_obj.sketch_projection_err(k=100),
                                 "l_bound": sketch_obj.compute_actual_l_bound()}
             sketch_objs.append(sketch_obj)
         #l1_sketch = BatchFDSketch(self.mat, self.l1, self.batch_size + self.l2 - self.l1)
@@ -137,13 +138,13 @@ class DynamicSketchExperiment(Experiment):
         l1_sketch.compute_sketch()
         self.results["l1"] = {"time": l1_sketch.sketching_time, 
                               "err": l1_sketch.sketch_err(),
-                              "proj_err": l1_sketch.sketch_projection_err()}
+                              "proj_err": l1_sketch.sketch_projection_err(k=100)}
         sketch_objs.append(l1_sketch)
         l2_sketch = BatchFDSketch(self.mat, self.l2, self.batch_size)
         l2_sketch.compute_sketch()
         self.results["l2"] = {"time": l2_sketch.sketching_time, 
                               "err": l2_sketch.sketch_err(),
-                              "proj_err": l2_sketch.sketch_projection_err()}
+                              "proj_err": l2_sketch.sketch_projection_err(k=100)}
         sketch_objs.append(l2_sketch)
         self.sketch_objs = sketch_objs
         self.computed_results = True
@@ -583,4 +584,4 @@ def test_par_exp():
     exp.write_results()
 
 if __name__ == "__main__":
-    test_rand_exp()
+    test_par_exp()

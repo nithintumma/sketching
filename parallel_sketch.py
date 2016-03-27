@@ -59,13 +59,14 @@ def parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num_proces
 	return sketches[0]
 
 if __name__ == "__main__":
-	mat_fname = 'small_data_batch_1'
+	mat_fname = 'cifar_data'
 	mat = load_matrix(mat_fname)
+        print "Mat Shape: ", mat.shape
 	l = 100
 	alpha = 0.2
 	batch_size = 100
 	randomized=False
-	num_processes=3
+	num_processes=1
 	print "Starting"
 	start_time = time.time()
 	sketch = parallel_bpfd_sketch(mat, l, alpha, batch_size, 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 
 
 	with open("experiments/parallel_results.txt", "a") as f:
-		f.write("Mat: %s, Rand: %r, l: %d, b: %d, alpha: %f, Processes: %d, Time: %f " %(mat_fname, randomized, l, 
-																						batch_size, alpha, 
-																						num_processes, sketching_time))
+		f.write("""Mat: %s, Rand: %r, l: %d, 
+                            b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
+					batch_size, alpha, num_processes, sketching_time))
 	print calculateError(mat, sketch)
