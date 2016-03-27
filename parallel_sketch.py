@@ -5,7 +5,8 @@ import numpy as np
 from scipy.sparse import coo_matrix
 
 # will allow us to parallelize 
-from fd_sketch import BatchPFDSketch, calculateError, calculate_projection_error
+from fd_sketch import (SparseBatchPFDSketch, BatchPFDSketch, 
+                        calculateError, calculate_projection_error)
 from helpers import load_matrix 
 
 
@@ -94,7 +95,9 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
 			s_ind, e_ind = breakpoints[i], breakpoints[i+1]
 		print s_ind, e_ind 
 		# construct the sparse matrix
-		submatrix = coo_matrix((data[s_ind:e_ind],(row[s_ind:e_ind],col[s_ind:e_ind])))
+		submatrix = coo_matrix((data[s_ind:e_ind],
+                                            (row_inds[s_ind:e_ind],
+                                            col_inds[s_ind:e_ind])))
 		args.append((submatrix, l, batch_size, alpha))
 	sketches = pool.map(_sparse_sketch_func, args)
 	num_sketches = len(sketches)
