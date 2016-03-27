@@ -148,5 +148,5 @@ def plot_batched_sketch_experiment(results_fname, save=True):
 if __name__ == "__main__":
     fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
     fname = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
-    fname = "experiments/rand_bpfd_experiment/med_svd_mat/results.p"
+    fname = "experiments/rand_bpfd_experiment//results.p"
     plot_batched_sketch_experiment(fname, save=True)
