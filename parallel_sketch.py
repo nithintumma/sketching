@@ -27,6 +27,7 @@ def sparse_sketch(args):
 	return sketch_obj.compute_sketch()
 
 def sparse_randomized_sketch(args):
+        print "About to init sketch object"
 	mat, l, b_size, alpha = args
 	sketch_obj = SparseBatchPFDSketch(mat, l, b_size, alpha, randomized=True)
 	return sketch_obj.compute_sketch()
@@ -80,12 +81,11 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
 	else:
 		_sparse_sketch_func = sparse_sketch
 		_sketch_func = sketch
-
+        print "Calling Sparse parallel"
 	pool = Pool(processes=num_processes)
 	unique_rows = np.unique(mat.row)
 	row_inds, col_inds, data = mat.row, mat.col, mat.data 
 	num_rows_per_p = len(unique_rows)/num_processes
-        # made sense, but we don't get the right number of rows
 	breakpoints = np.searchsorted(unique_rows, 
                             [i*num_rows_per_p for i in range(num_processes)])
 	args = []
@@ -99,8 +99,10 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
             else:
                 s_ind = i*num_processes
                 e_ind = (i+1)*num_rows_per_p
+            print "Constructing submatrix ", i
             submatrix = csr_mat[s_ind:e_ind, :] 
             args.append((submatrix.tocoo(), l, batch_size, alpha))
+	sketches = pool.map(_sparse_sketch_func, args)
 
 	#for i in range(num_processes):
 	#	if i == num_processes - 1:
@@ -120,7 +122,7 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
         
         # this might be more efficient if we stack all the sketches and go in
         # one go
-	sketches = pool.map(_sparse_sketch_func, args)
+        print "Merging sketches"
 	num_sketches = len(sketches)
 	while num_sketches > 1:
 		args = []
@@ -130,9 +132,9 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
 		for i in range(num_sketches/2):
 			if (i == num_sketches/2 - 1) and stack_last:
 				arg_tuple = (np.vstack((sketches[2*i], sketches[-1])), 
-								l, batch_size, alpha, sketches[2*i+1])
+								l, 2*l, alpha, sketches[2*i+1])
 			else:
-				arg_tuple = (sketches[2*i], l, batch_size, alpha, sketches[2*i+1])
+				arg_tuple = (sketches[2*i], l, l, alpha, sketches[2*i+1])
 			args.append(arg_tuple)
 		sketches = pool.map(_sketch_func, args)
 		num_sketches = len(sketches)
@@ -170,7 +172,7 @@ if __name__ == "__main__":
     alpha = 0.2
     batch_size = 5000
     randomized=True
-    num_processes=16
+    num_processes=4
     print "Starting with %d processes" % num_processes
     start_time = time.time()
     sketch = sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, 
