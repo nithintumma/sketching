@@ -1,10 +1,12 @@
 """
 scripts to help run tests, generate and save matrices, test validity of operatiosn
 """
+import time
 import numpy as np
-import time 
+import scipy.sparse as sps
 import os 
 import cPickle as pickle
+from gensim import models
 from fbpca import pca as rand_svd
 
 MATRIX_DIR = 'test_matrices/'
@@ -94,5 +96,22 @@ def time_batches():
     np.linalg.svd(B)
     print "Exact: ", time.time() - start_time    
 
+def test_word2vec():
+    path = "../data/GoogleNews-vectors-negative300.bin"
+    with open(path, "rb") as f:
+        print "Sucess"
+    w_model = models.Word2Vec.load_word2vec_format(path, binary=True)
+    print w_model.syn0.shape
+
+def test_sparse_rand():
+    A = sps.rand(10000, 30000, 0.001)
+    Ad = A.todense()
+    start_time = time.time()
+    rand_svd(A, 200)
+    print "Sparse time: ", time.time() - start_time
+    start_time = time.time()
+    rand_svd(Ad, 200)
+    print "Dense time: ", time.time() - start_time
+
 if __name__ == "__main__":
-    time_batches()
+    test_sparse_rand()
