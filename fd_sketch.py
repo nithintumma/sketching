@@ -468,12 +468,12 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
         squared_sv_center = vec_sigma[self.del_ind] ** 2
         # below can be done in numpy for sure 
-        #vec_sigma[alpha_ind:] = vec_sigma[:alpha_ind] ** 2 - squared_sv_center
-        #trunc_vec = vec_sigma[:self.alpha_ind]
-        #trunc_vec = trunc_vec **2 - squared_sv_center
-        #trunc_vec[trunc_vec < 0] = 0
-        #np.squrt(trunc_vec, out=trunc_vec)
-        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        trunc_vec = vec_sigma[:self.alpha_ind]
+        trunc_vec = trunc_vec **2 - squared_sv_center
+        trunc_vec[trunc_vec < 0] = 0
+        np.sqrt(trunc_vec, out=trunc_vec)
+        sigma_tilde = vec_sigma
+        #sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
         # saves us from having to construct a diagonal matrix 
         # what if we modified in place here? 
         mat_b[:self.l, :] = (mat_vt.T * np.array(sigma_tilde)).T
@@ -498,6 +498,7 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         mask = np.ones(mat.shape[0], np.bool)
         mask[nzero_inds] = 0
         return np.where(mask)[0].tolist()
+
 
     def compute_sparse_sketch(self):
         start_time = time.time()
@@ -534,18 +535,18 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         mat_b = np.zeros([self.l + self.b_size, self.m])
         # compute zero valued row list
         # other way: np.where(~mat_b.any(axis=1))[0]
-        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        # zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
+        zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
         # iterate through the nzrow_inds
         for i in self.nzrow_inds:
             mat_b[zero_rows[0], :] = self.mat.getrow(i).todense()
             #zero_rows = zero_rows[1:]
             zero_rows.remove(zero_rows[0])
             if len(zero_rows) == 0:
-                #mat_b = self._sketch_func(mat_b)
                 self._sketch_func(mat_b)
-                #zero_rows = np.where(~np.round(mat_b, 6).any(axis=1))[0]
-                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
-        #mat_b = self._sketch_func(mat_b)
+                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
+                zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
         self._sketch_func(mat_b)
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time 
