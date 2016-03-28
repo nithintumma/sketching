@@ -435,9 +435,10 @@ class JLTSketch(Sketch):
         self.l = l
 
     def compute_sketch(self):
-        # use sklearn built in random projection matrix?? but does this let us constrol how big the matrix will be? 
+        # we might need to rescale this matrix? 
         start_time = time.time()
-        self.sketching_matrix = np.random.normal(size=(self.l, self.mat.shape[0]))
+        self.sketching_matrix = np.random.normal(size=(self.l, 
+                                                        self.mat.shape[0]))
         self.sketch = np.dot(self.sketching_matrix, self.mat)
         self.sketching_time = time.time() - start_time
 
@@ -448,23 +449,29 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         self.nzrow_inds = np.unique(mat.row)
         # helps us get slices, get rows, etc. 
         super(SparseBatchPFDSketch, self).__init__(mat.tocsr(), l, 
-                                                    batch_size, alpha, randomized=randomized)
+                                                    batch_size, alpha, 
+                                                    randomized=randomized)
 
     def compute_sketch(self):
-        # what do we do differently here? we need to iterate over the nzrow_inds,
         start_time = time.time()
         if self.sketch is not None:
             return self.sketch
         mat_b = np.zeros([self.l + self.b_size, self.m])
         # compute zero valued row list
-        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        zero_rows = np.nonzero([round(s, 7) == 0.0 
+                        for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # iterate through the nzrow_inds
+        rows_added = 0
         for i in self.nzrow_inds:
+            if rows_added % 1000 == 0:
+                print "Added: ", rows_added 
             mat_b[zero_rows[0], :] = self.mat.getrow(i).todense()
             zero_rows.remove(zero_rows[0])
             if len(zero_rows) == 0:
                 mat_b = self._sketch_func(mat_b)
-                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+                zero_rows = np.nonzero([round(s, 7) == 0.0 
+                            for s in np.sum(mat_b, axis = 1)])[0].tolist()
+            rows_added += 1
         mat_b = self._sketch_func(mat_b)
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time 

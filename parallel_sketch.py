@@ -1,10 +1,11 @@
 import time 
+import os
 from multiprocessing import Pool, current_process
 
 import numpy as np
 from scipy.sparse import coo_matrix
+from scipy.io import mmread
 
-# will allow us to parallelize 
 from fd_sketch import (SparseBatchPFDSketch, BatchPFDSketch, 
                         calculateError, calculate_projection_error)
 from helpers import load_matrix 
@@ -84,21 +85,39 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
 	unique_rows = np.unique(mat.row)
 	row_inds, col_inds, data = mat.row, mat.col, mat.data 
 	num_rows_per_p = len(unique_rows)/num_processes
-    # now how do we process the actual data? we want to do something like np.findsorted 
-	breakpoints = np.searchsorted(unique_rows, [i*num_rows_per_p for i in range(num_processes)])
+        # made sense, but we don't get the right number of rows
+	breakpoints = np.searchsorted(unique_rows, 
+                            [i*num_rows_per_p for i in range(num_processes)])
 	args = []
-	for i in range(num_processes):
-		if i == num_processes - 1:
-			# at last pone
-			s_ind, e_ind = breakpoints[i], len(row_inds)
-		else:
-			s_ind, e_ind = breakpoints[i], breakpoints[i+1]
-		print s_ind, e_ind 
-		# construct the sparse matrix
-		submatrix = coo_matrix((data[s_ind:e_ind],
-                                            (row_inds[s_ind:e_ind],
-                                            col_inds[s_ind:e_ind])))
-		args.append((submatrix, l, batch_size, alpha))
+        # need csr to do row slicing 
+        csr_mat = mat.tocsr()
+        # lets assume that every row is non-zero for now
+        for i in range(num_processes):
+            if i == num_processes - 1:
+                s_ind = i*num_rows_per_p
+                e_ind = csr_mat.shape[0] 
+            else:
+                s_ind = i*num_processes
+                e_ind = (i+1)*num_rows_per_p
+            submatrix = csr_mat[s_ind:e_ind, :] 
+            args.append((submatrix.tocoo(), l, batch_size, alpha))
+
+	#for i in range(num_processes):
+	#	if i == num_processes - 1:
+        #            s_ind, e_ind = breakpoints[i], len(row_inds)
+	#	else:
+        #            s_ind, e_ind = breakpoints[i], breakpoints[i+1]
+	#	# construct the sparse matrix
+        #        submatrix = 
+	#	submatrix = coo_matrix((data[s_ind:e_ind],
+        #                                    (row_inds[s_ind:e_ind],
+        #                                    col_inds[s_ind:e_ind])))
+        #        print len(np.unique(row_inds[s_ind:e_ind]))
+	#	print "Got here"
+	#	print submatrix.shape
+	#	raise Exception("failed on all counts")
+	#	args.append((submatrix, l, batch_size, alpha))
+
 	sketches = pool.map(_sparse_sketch_func, args)
 	num_sketches = len(sketches)
 	while num_sketches > 1:
@@ -118,25 +137,44 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
 	return sketches[0]
 
 
+def run_code():
+    mat = load_matrix(mat_fname)
+    print "Mat Shape: ", mat.shape
+    l = 100
+    alpha = 0.2
+    batch_size = 100
+    randomized=False
+    num_processes=1
+    print "Starting"
+    start_time = time.time()
+    sketch = parallel_bpfd_sketch(mat, l, alpha, batch_size, 
+                                                                            randomized=randomized, num_processes=num_processes)
+    sketching_time = time.time() - start_time 
+
+
+    with open("experiments/parallel_results.txt", "a") as f:
+            f.write("""Mat: %s, Rand: %r, l: %d, 
+                        b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
+                                    batch_size, alpha, num_processes, sketching_time))
+    print calculateError(mat, sketch)
+
 # how do I test this? do I have an example file laying around somewhere? s
 if __name__ == "__main__":
-	mat_fname = 'cifar_data'
-	mat = load_matrix(mat_fname)
-        print "Mat Shape: ", mat.shape
-	l = 100
-	alpha = 0.2
-	batch_size = 100
-	randomized=False
-	num_processes=1
-	print "Starting"
-	start_time = time.time()
-	sketch = parallel_bpfd_sketch(mat, l, alpha, batch_size, 
-										randomized=randomized, num_processes=num_processes)
-	sketching_time = time.time() - start_time 
-
-
-	with open("experiments/parallel_results.txt", "a") as f:
-		f.write("""Mat: %s, Rand: %r, l: %d, 
-                            b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
-					batch_size, alpha, num_processes, sketching_time))
-	print calculateError(mat, sketch)
+    mat_fname = 'ESOC.mtx'
+    with open(os.path.join("test_matrices", mat_fname), "rb") as mfile:
+        mat = mmread(mfile)
+    print "Mat Shape: ", mat.shape
+    l = 200
+    alpha = 0.2
+    batch_size = 10000
+    randomized=True
+    num_processes=16
+    print "Starting with %d processes" % num_processes
+    start_time = time.time()
+    sketch = sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, 
+                randomized=randomized, num_processes=num_processes)
+    sketching_time = time.time() - start_time 
+    with open("experiments/parallel_results.txt", "a") as f:
+            f.write("""Mat: %s, Rand: %r, l: %d, 
+                        b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
+                                    batch_size, alpha, num_processes, sketching_time))

@@ -82,13 +82,17 @@ def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=Tr
 
 
 # tweak(Fast) vs batched PFD 
-def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1.1, 0.1), fast=False):
+def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, 
+                                alphas=np.arange(0.1, 1.1, 0.1), 
+                                fast=False, double=True):
     # what is init signature? 
     print "Tweak vs Batched Experiment"
     #mat = load_matrix(mat_fname)
     #def __init__(self, exp_name, mat_fname, l, alphas, runs=3, randomized=False):
     exp_name = "tweak_batch_exp_" + os.path.splitext(mat_fname)[0]
-    exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, l, alphas, runs=3, fast=fast)
+    exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, 
+                                            l, alphas, runs=3, 
+                                            fast=fast, double=double)
     exp.run_experiment()
     exp.write_results()
 
@@ -141,7 +145,6 @@ def completed_experiments():
     dynamic_experiment(mat_fname=mat_fname, l1=l1, l2=l2, 
                         batch_size=400, plot=False)
 
-if __name__ == "__main__":
     mat_fname = sparse_mat_fname
     l = 200
     alpha = 0.2
@@ -149,7 +152,16 @@ if __name__ == "__main__":
     batch_size = 2 * l
     processors = [2, 4, 8, 16]
     runs = 1
-    run_parallel_experiment(mat_fname, l, alpha, batch_size, processors, runs)
-    # when will randomization start to help out a lot? is it only for sparse
-    # matrices? and if so, why is that? can we take advantage of it using scipy
-    # or not really? I dont know but I kind of want to for this project
+    run_parallel_experiment(mat_fname, l, alpha, 
+                            batch_size, processors, runs)
+if __name__ == "__main__":
+    mat_fname = med_cifar_mat_fname
+    l = 200
+    alphas = np.arange(0.1, 1.1, 0.1)
+    fast=True
+    double=True
+    tweak_vs_batched_experiment(mat_fname=mat_fname,
+                                l=l,
+                                alphas=alphas, 
+                                fast=fast,
+                                double=double)

@@ -309,7 +309,7 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
     runs is number of times that we should repeat the experimeent for runtime 
     """
     def __init__(self, exp_name, mat_fname, l, alphas, runs=3, 
-                    randomized=False, fast=True, double=False):
+                    randomized=False, fast=True, double=True):
         self.l = l
         self.alphas = alphas
         self.runs = runs
@@ -317,10 +317,10 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
         self.fast = fast
         self.double=double
         print "Fast: ", self.fast
-        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, mat_fname, alphas, "Alpha")
+        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, 
+                                            mat_fname, alphas, "Alpha")
 
     def run_experiment(self):
-        # compute sketches for each batch size, then save the results to a dictionary, 
         sketch_objs = []
         self.results['tweak'] = {}
         self.results['batch'] = {}
@@ -328,7 +328,9 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
             print "Testing ", a
             times = []
             for i in range(self.runs):
-                sketch_obj = BatchPFDSketch(self.mat, self.l, self.l, a, randomized=self.randomized)
+                sketch_obj = BatchPFDSketch(self.mat, self.l, 
+                                            self.l, a, 
+                                            randomized=self.randomized)
                 # compute the sketch 
                 sketch_obj.compute_sketch()
                 times.append(sketch_obj.sketching_time)

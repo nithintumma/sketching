@@ -2,8 +2,11 @@
 scripts to help run tests, generate and save matrices, test validity of operatiosn
 """
 import numpy as np
+import time 
 import os 
 import cPickle as pickle
+from fbpca import pca as rand_svd
+
 MATRIX_DIR = 'test_matrices/'
 
 def gen_random_matrix(rows, cols, fname=None):
@@ -78,5 +81,18 @@ def aggregate_cifar_matrice(cifar_path='../../data/'):
     mat = np.vstack((mat, d['data']))
     return mat
 
- 
-    
+def time_batches():
+    A = np.ones((10000, 10000)) 
+    start_time = time.time()
+    rand_svd(A, k=200) 
+    print "Large: ", time.time() - start_time 
+    B = np.ones((1000, 10000))
+    start_time =time.time()
+    rand_svd(B, k=200)
+    print "Small: ", time.time() - start_time
+    start_time = time.time()
+    np.linalg.svd(B)
+    print "Exact: ", time.time() - start_time    
+
+if __name__ == "__main__":
+    time_batches()
