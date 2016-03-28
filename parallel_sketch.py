@@ -117,7 +117,9 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
 	#	print submatrix.shape
 	#	raise Exception("failed on all counts")
 	#	args.append((submatrix, l, batch_size, alpha))
-
+        
+        # this might be more efficient if we stack all the sketches and go in
+        # one go
 	sketches = pool.map(_sparse_sketch_func, args)
 	num_sketches = len(sketches)
 	while num_sketches > 1:
@@ -166,7 +168,7 @@ if __name__ == "__main__":
     print "Mat Shape: ", mat.shape
     l = 200
     alpha = 0.2
-    batch_size = 10000
+    batch_size = 5000
     randomized=True
     num_processes=16
     print "Starting with %d processes" % num_processes

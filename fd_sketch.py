@@ -527,10 +527,8 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         # basically, want to init an empty csr matrix 
         if self.randomized and (self.b_size > 100 * self.l):
             # lets use the sparse version of randomized sketch here 
-            print "Fast sparse sketch"
             return self.compute_sparse_sketch()
         else:
-            print "Fast dense sketch"
             self._sketch_func = self._fast_rand_sketch
         # what do we do differently here? we need to iterate over the nzrow_inds,
         mat_b = np.zeros([self.l + self.b_size, self.m])
