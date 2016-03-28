@@ -25,6 +25,7 @@ def sparse_sketch(args):
 	return sketch_obj.compute_sketch()
 
 def sparse_randomized_sketch(args):
+	print "initing sketch object"
 	mat, l, b_size, alpha = args
 	sketch_obj = SparseBatchPFDSketch(mat, l, b_size, alpha, randomized=True)
 	return sketch_obj.compute_sketch()
