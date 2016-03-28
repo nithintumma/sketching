@@ -17,15 +17,13 @@ EXPERIMENT_MATRIX_DIR = 'experiment_matrices/'
 
 # random matrices
 rand_mat_1_fname = 'rand_10000_2000.txt'
-# larger
-rand_mat_2_fname = "NOT CREATED"
-# sparse
-rand_mat_3_fname = "NOT CREATED"
-
+# CIFAR matrices
 cifar_mat_fname = 'data_batch_1'
 small_cifar_mat_fname = 'small_data_batch_1'
 med_cifar_mat_fname = 'cifar_data'
 large_cifar_mat_fname = 'large_cifar_data'
+# sparse matrices
+sparse_mat_fname = 'ESOC.mtx'
 MATRIX = large_cifar_mat_fname
 
 def alpha_experiment(mat_fname=MATRIX, l=200, alphas=None, plot=True):
@@ -84,13 +82,17 @@ def dynamic_experiment(mat_fname=MATRIX, l1=320, l2=350, batch_size=400, plot=Tr
 
 
 # tweak(Fast) vs batched PFD 
-def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, alphas=np.arange(0.1, 1.1, 0.1), fast=False):
+def tweak_vs_batched_experiment(mat_fname=MATRIX, l=200, 
+                                alphas=np.arange(0.1, 1.1, 0.1), 
+                                fast=False, double=True):
     # what is init signature? 
     print "Tweak vs Batched Experiment"
     #mat = load_matrix(mat_fname)
     #def __init__(self, exp_name, mat_fname, l, alphas, runs=3, randomized=False):
     exp_name = "tweak_batch_exp_" + os.path.splitext(mat_fname)[0]
-    exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, l, alphas, runs=3, fast=fast)
+    exp = TweakVsBatchPFDSketchExperiment(exp_name, mat_fname, 
+                                            l, alphas, runs=3, 
+                                            fast=fast, double=double)
     exp.run_experiment()
     exp.write_results()
 
@@ -110,6 +112,7 @@ def run_parallel_experiment(mat_fname, l, alpha, batch_size, processors, runs):
     exp_name = 'parallel_exp_' + os.path.splitext(mat_fname)[0]
     if mat_fname[-3:] == 'mtx':
         sparse = True
+        print "Sparse Matrix: ", mat_fname
     else:
         sparse=False
     exp = ParallelPFDSketchExperiment(exp_name, mat_fname, l, alpha, 
@@ -126,15 +129,14 @@ def completed_experiments():
                     l2=300,
                     batch_size=300,
                     plot=False) 
-    mat_fname = med_cifar_mat_fname
+    mat_fname = sparse_mat_fname
     l = 200
     alpha = 0.2
     batch_size = 2 * l
     processors = [1, 2, 4, 8, 16, 32]
     runs = 2
     run_parallel_experiment(mat_fname, l, alpha, batch_size, processors, runs)
-
-if __name__ == "__main__":
+    # just around so I don't have to rewrite every time 
     mat_fname = med_cifar_mat_fname
     l1 = 200
     l2 = 300
@@ -142,3 +144,24 @@ if __name__ == "__main__":
     batch_size = 400
     dynamic_experiment(mat_fname=mat_fname, l1=l1, l2=l2, 
                         batch_size=400, plot=False)
+
+    mat_fname = sparse_mat_fname
+    l = 200
+    alpha = 0.2
+    # should we do a larger batch size for randomization? 
+    batch_size = 2 * l
+    processors = [2, 4, 8, 16]
+    runs = 1
+    run_parallel_experiment(mat_fname, l, alpha, 
+                            batch_size, processors, runs)
+if __name__ == "__main__":
+    mat_fname = med_cifar_mat_fname
+    l = 200
+    alphas = np.arange(0.1, 1.1, 0.1)
+    fast=True
+    double=True
+    tweak_vs_batched_experiment(mat_fname=mat_fname,
+                                l=l,
+                                alphas=alphas, 
+                                fast=fast,
+                                double=double)

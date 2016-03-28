@@ -1,0 +1,2 @@
+Mat Shape:  (327062, 37830)
+Starting with 4 processes

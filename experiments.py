@@ -1,16 +1,17 @@
 import os 
-import subprocess
-import numpy as np
 import time 
 import re 
+import subprocess
+import numpy as np
+from scipy.io import mmread
 import matplotlib.pyplot as plt 
 import cPickle as pickle 
-
 
 from helpers import load_matrix, write_matrix
 from fd_sketch import (JLTSketch, CWSparseSketch, FDSketch, BatchFDSketch, PFDSketch, 
                         BatchPFDSketch, DynamicFDSketch, TweakPFDSketch, calculateError, 
-                        calculate_projection_error, squaredFrobeniusNorm) 
+                        sparse_calculate_error, calculate_projection_error, 
+                        squaredFrobeniusNorm) 
 from parallel_sketch import parallel_bpfd_sketch, sparse_parallel_bpfd_sketch
 
 # CONSTANT DIRECTORIES  
@@ -28,7 +29,7 @@ class Experiment(object):
         self.mat_fname = mat_fname
         if sparse:
             # assume Matrix Market format
-            self.mat = scipy.sparse.mmread(self.mat_fname)
+            self.mat = mmread(os.path.join(MATRIX_DIR, mat_fname))
         else:
             self.mat = load_matrix(self.mat_fname)
         self.exp_dir = os.path.join(EXP_DIR, exp_name, os.path.splitext(mat_fname)[0])
@@ -308,7 +309,7 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
     runs is number of times that we should repeat the experimeent for runtime 
     """
     def __init__(self, exp_name, mat_fname, l, alphas, runs=3, 
-                    randomized=False, fast=True, double=False):
+                    randomized=False, fast=True, double=True):
         self.l = l
         self.alphas = alphas
         self.runs = runs
@@ -316,10 +317,10 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
         self.fast = fast
         self.double=double
         print "Fast: ", self.fast
-        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, mat_fname, alphas, "Alpha")
+        super(TweakVsBatchPFDSketchExperiment, self).__init__(exp_name, 
+                                            mat_fname, alphas, "Alpha")
 
     def run_experiment(self):
-        # compute sketches for each batch size, then save the results to a dictionary, 
         sketch_objs = []
         self.results['tweak'] = {}
         self.results['batch'] = {}
@@ -327,7 +328,9 @@ class TweakVsBatchPFDSketchExperiment(Experiment):
             print "Testing ", a
             times = []
             for i in range(self.runs):
-                sketch_obj = BatchPFDSketch(self.mat, self.l, self.l, a, randomized=self.randomized)
+                sketch_obj = BatchPFDSketch(self.mat, self.l, 
+                                            self.l, a, 
+                                            randomized=self.randomized)
                 # compute the sketch 
                 sketch_obj.compute_sketch()
                 times.append(sketch_obj.sketching_time)

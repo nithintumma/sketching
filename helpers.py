@@ -83,6 +83,19 @@ def aggregate_cifar_matrice(cifar_path='../../data/'):
     mat = np.vstack((mat, d['data']))
     return mat
 
+def time_batches():
+    A = np.ones((10000, 10000)) 
+    start_time = time.time()
+    rand_svd(A, k=200) 
+    print "Large: ", time.time() - start_time 
+    B = np.ones((1000, 10000))
+    start_time =time.time()
+    rand_svd(B, k=200)
+    print "Small: ", time.time() - start_time
+    start_time = time.time()
+    np.linalg.svd(B)
+    print "Exact: ", time.time() - start_time    
+
 def test_word2vec():
     path = "../data/GoogleNews-vectors-negative300.bin"
     with open(path, "rb") as f:

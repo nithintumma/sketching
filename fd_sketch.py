@@ -447,9 +447,10 @@ class JLTSketch(Sketch):
         self.l = l
 
     def compute_sketch(self):
-        # use sklearn built in random projection matrix?? but does this let us constrol how big the matrix will be? 
+        # we might need to rescale this matrix? 
         start_time = time.time()
-        self.sketching_matrix = np.random.normal(size=(self.l, self.mat.shape[0]))
+        self.sketching_matrix = np.random.normal(size=(self.l, 
+                                                        self.mat.shape[0]))
         self.sketch = np.dot(self.sketching_matrix, self.mat)
         self.sketching_time = time.time() - start_time
 
@@ -460,7 +461,8 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         self.nzrow_inds = np.unique(mat.row)
         # helps us get slices, get rows, etc. 
         super(SparseBatchPFDSketch, self).__init__(mat.tocsr(), l, 
-                                                    batch_size, alpha, randomized=randomized)
+                                                    batch_size, alpha, 
+                                                    randomized=randomized)
 
     def _fast_rand_sketch(self, mat_b):
         # does computation in place 
@@ -526,14 +528,14 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         # basically, want to init an empty csr matrix 
         if self.randomized and (self.b_size > 100 * self.l):
             # lets use the sparse version of randomized sketch here 
-            print "Fast sparse sketch"
             return self.compute_sparse_sketch()
         else:
-            print "Fast dense sketch"
             self._sketch_func = self._fast_rand_sketch
         # what do we do differently here? we need to iterate over the nzrow_inds,
         mat_b = np.zeros([self.l + self.b_size, self.m])
         # compute zero valued row list
+        #zero_rows = np.nonzero([round(s, 7) == 0.0 
+        #                for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # other way: np.where(~mat_b.any(axis=1))[0]
         # zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
         zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
