@@ -9,7 +9,6 @@ import sys
 import time 
 import random
 import os
-import subprocess 
 
 from helpers import load_matrix, write_matrix 
 from fbpca import pca as rand_svd 
@@ -294,7 +293,20 @@ class BatchPFDSketch(BatchFDSketch):
         # update matrix B where at least half rows are all zero
         return np.dot(np.diagflat(sigma_tilde), mat_vt)
 
+    def _old_rand_svd_sketch(self, mat_b):
+        # use fbpca rand_svd (PCA) function to approximate PCA 
+        # do we care about block size for power iteration method? 
+        mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
+        # need to return an (l + b) X ncols matrix, so add b rows of zero to result 
+        extra_rows = self.b_size 
+        vec_sigma = np.hstack((vec_sigma, np.zeros(extra_rows)))
+        mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
+        squared_sv_center = vec_sigma[self.del_ind] ** 2
+        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        return np.dot(np.diagflat(sigma_tilde), mat_vt)
+
     # override _random_svd_sketch to use del_ind and alpha_ind
+    # update this to be faster, test it 
     def _rand_svd_sketch(self, mat_b):
         # use fbpca rand_svd (PCA) function to approximate PCA 
         # do we care about block size for power iteration method? 
@@ -450,22 +462,91 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         super(SparseBatchPFDSketch, self).__init__(mat.tocsr(), l, 
                                                     batch_size, alpha, randomized=randomized)
 
+    def _fast_rand_sketch(self, mat_b):
+        # does computation in place 
+        # works for dense mat_b
+        mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
+        squared_sv_center = vec_sigma[self.del_ind] ** 2
+        # below can be done in numpy for sure 
+        #vec_sigma[alpha_ind:] = vec_sigma[:alpha_ind] ** 2 - squared_sv_center
+        #trunc_vec = vec_sigma[:self.alpha_ind]
+        #trunc_vec = trunc_vec **2 - squared_sv_center
+        #trunc_vec[trunc_vec < 0] = 0
+        #np.squrt(trunc_vec, out=trunc_vec)
+        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        # saves us from having to construct a diagonal matrix 
+        # what if we modified in place here? 
+        mat_b[:self.l, :] = (mat_vt.T * np.array(sigma_tilde)).T
+        mat_b[self.l:, :] = np.zeros((self.b_size, self.m))
+
+        #new_mat_b = (mat_vt.T * np.array(sigma_tilde)).T
+        #return np.vstack((new_mat_b, np.zeros((self.b_size, self.m))))
+
+    # why does this not work? 
+    def _sparse_rand_sketch(self, mat_b):        
+        mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
+        squared_sv_center = vec_sigma[self.del_ind] ** 2
+        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        # saves us from having to construct a diagonal matrix 
+        new_mat_b = (mat_vt.T * np.array(sigma_tilde)).T
+        return sps.vstack((sps.lil_matrix(new_mat_b), sps.lil_matrix((self.b_size, self.m))), format='lil')
+
+    # might be a more elegant way to do this? also might be a faster way to do it 
+    def _sparse_zero_rows(self, mat):
+        nzero_inds, _ = mat.nonzero()
+        nzero_inds = np.unique(nzero_inds)
+        mask = np.ones(mat.shape[0], np.bool)
+        mask[nzero_inds] = 0
+        return np.where(mask)[0].tolist()
+
+    def compute_sparse_sketch(self):
+        start_time = time.time()
+        self._sketch_func = self._sparse_rand_sketch
+        # try and work with lil_matrix 
+        mat_b = sps.lil_matrix((self.l + self.b_size, self.m))
+        #mat_b = sps.csr_matrix((self.l + self.b_size, self.m))
+        zero_rows = self._sparse_zero_rows(mat_b)
+        for i in self.nzrow_inds:
+            # this might be really inefficient? 
+            mat_b[zero_rows[0], :] = self.mat.getrow(i)
+            zero_rows.remove(zero_rows[0])
+            if len(zero_rows) == 0:
+                mat_b = self._sketch_func(mat_b)
+                zero_rows = self._sparse_zero_rows(mat_b)
+        mat_b = self._sketch_func(mat_b)
+        self.sketch = mat_b[:self.l, :].todense()
+        self.sketching_time = time.time() - start_time
+        return self.sketch
+
     def compute_sketch(self):
-        # what do we do differently here? we need to iterate over the nzrow_inds,
         start_time = time.time()
         if self.sketch is not None:
             return self.sketch
+        # basically, want to init an empty csr matrix 
+        if self.randomized and (self.b_size > 100 * self.l):
+            # lets use the sparse version of randomized sketch here 
+            print "Fast sparse sketch"
+            return self.compute_sparse_sketch()
+        else:
+            print "Fast dense sketch"
+            self._sketch_func = self._fast_rand_sketch
+        # what do we do differently here? we need to iterate over the nzrow_inds,
         mat_b = np.zeros([self.l + self.b_size, self.m])
         # compute zero valued row list
+        # other way: np.where(~mat_b.any(axis=1))[0]
         zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # iterate through the nzrow_inds
         for i in self.nzrow_inds:
             mat_b[zero_rows[0], :] = self.mat.getrow(i).todense()
+            #zero_rows = zero_rows[1:]
             zero_rows.remove(zero_rows[0])
             if len(zero_rows) == 0:
-                mat_b = self._sketch_func(mat_b)
+                #mat_b = self._sketch_func(mat_b)
+                self._sketch_func(mat_b)
+                #zero_rows = np.where(~np.round(mat_b, 6).any(axis=1))[0]
                 zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
-        mat_b = self._sketch_func(mat_b)
+        #mat_b = self._sketch_func(mat_b)
+        self._sketch_func(mat_b)
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time 
         return self.sketch
