@@ -2,3 +2,5 @@ Mat: small_data_batch_1, Rand: False, l: 100, b: 100, alpha: 0.200000, Processes
 Mat: cifar_data, Rand: False, l: 100, b: 100, alpha: 0.200000, Processes: 4, Time: 35.317939 
 Mat: cifar_data, Rand: False, l: 100, 
                             b: 100, alpha: 0.200000, Processes: 1, Time: 117.440314
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 4, Time: 266.207886

@@ -97,10 +97,10 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
                 s_ind = i*num_rows_per_p
                 e_ind = csr_mat.shape[0] 
             else:
-                s_ind = i*num_processes
+                s_ind = i*num_rows_per_p
                 e_ind = (i+1)*num_rows_per_p
-            print "Constructing submatrix ", i
             submatrix = csr_mat[s_ind:e_ind, :] 
+            print "Submatrix shape: ", submatrix.shape
             args.append((submatrix.tocoo(), l, batch_size, alpha))
 	sketches = pool.map(_sparse_sketch_func, args)
 
@@ -166,7 +166,8 @@ def run_code():
 if __name__ == "__main__":
     mat_fname = 'ESOC.mtx'
     with open(os.path.join("test_matrices", mat_fname), "rb") as mfile:
-        mat = mmread(mfile)
+        big_mat = mmread(mfile)
+    mat = big_mat.tocsr()[:100000, :].tocoo()
     print "Mat Shape: ", mat.shape
     l = 200
     alpha = 0.2

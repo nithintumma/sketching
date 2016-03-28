@@ -456,6 +456,7 @@ class JLTSketch(Sketch):
 
 class SparseBatchPFDSketch(BatchPFDSketch):
     def __init__(self, mat, l, batch_size, alpha, randomized=False):
+        print "Actually initing object"
         # assume that mat is in COO format, just read in 
         # get the non-zeros sorted
         self.nzrow_inds = np.unique(mat.row)
@@ -501,7 +502,6 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         mask[nzero_inds] = 0
         return np.where(mask)[0].tolist()
 
-
     def compute_sparse_sketch(self):
         start_time = time.time()
         self._sketch_func = self._sparse_rand_sketch
@@ -546,6 +546,7 @@ class SparseBatchPFDSketch(BatchPFDSketch):
             #zero_rows = zero_rows[1:]
             zero_rows.remove(zero_rows[0])
             if len(zero_rows) == 0:
+                print "sketching ", i
                 self._sketch_func(mat_b)
                 zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
                 zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
