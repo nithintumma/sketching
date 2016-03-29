@@ -98,19 +98,17 @@ class BatchFDSketch(Sketch):
             return np.dot(np.diagflat(sigma_tilda), mat_vt)
 
     def _svd_sketch(self, mat_b):
-        mat_u, vec_sigma, mat_vt = np.linalg.svd(mat_b, full_matrice=False)
+        mat_u, vec_sigma, mat_vt = np.linalg.svd(mat_b, full_matrices=False)
         squared_sv_center = vec_sigma[self.l-1] ** 2
         if self.track_del:
             self.delta += squared_sv_center
         # below can be done in numpy for sure 
-        trunc_vec = vec_sigma[:]
-        trunc_vec = trunc_vec **2 - squared_sv_center
-        trunc_vec[trunc_vec < 0] = 0
-        np.sqrt(trunc_vec, out=trunc_vec)
-        mat_b[:self.l, :] = (mat_vt.T * vec_sigma).T
+        sigma_tilde = list([(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)])
+        mat_b[:self.l, :] = (mat_vt[:self.l, :].T * np.array(sigma_tilde)[:self.l]).T
         mat_b[self.l:, :] = np.zeros((self.b_size, self.m))
-
+        
     def _rand_svd_sketch(self, mat_b):
+        raise Exception("Fix")
         # does computation in place 
         # works for dense mat_b
         mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
@@ -263,7 +261,11 @@ class TweakPFDSketch(Sketch):
         sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
         # update matrix B where at least half rows are all zero
         # don't know about batch size here 
-        mat_b[:] = (mat_vt.T * np.array(sigma_tilde)).T
+        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        # just do the multiplication with the top l 
+        mat_b[:self.l, :] = (mat_vt[:self.l, :].T * np.array(sigma_tilde)[:self.l]).T
+
+        #mat_b[:] = (mat_vt.T * np.array(sigma_tilde)).T
 
     def compute_sketch(self):
         start_time = time.time()
