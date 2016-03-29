@@ -97,7 +97,7 @@ class BatchFDSketch(Sketch):
             sigma_tilda = [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)]
             return np.dot(np.diagflat(sigma_tilda), mat_vt)
 
-    def svd_sketch(self, mat_b):
+    def _svd_sketch(self, mat_b):
         mat_u, vec_sigma, mat_vt = np.linalg.svd(mat_b, full_matrice=False)
         squared_sv_center = vec_sigma[self.l-1] ** 2
         if self.track_del:
@@ -110,7 +110,7 @@ class BatchFDSketch(Sketch):
         mat_b[:self.l, :] = (mat_vt.T * vec_sigma).T
         mat_b[self.l:, :] = np.zeros((self.b_size, self.m))
 
-    def rand_svd_sketch(self, mat_b):
+    def _rand_svd_sketch(self, mat_b):
         # does computation in place 
         # works for dense mat_b
         mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
@@ -182,8 +182,6 @@ class DynamicFDSketch(BatchFDSketch):
 
     def compute_sketch(self):
         # assumes that we are tracking delta (self.track_del == True)
-        if self.sketch is not None:
-            return self.sketch
         start_time = time.time()
         if self.sketch is not None:
             return self.sketch

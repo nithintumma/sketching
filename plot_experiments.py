@@ -276,6 +276,6 @@ def plot_scalability(results_fname="experiments/parallel_ESOC/ESOC/results.p"):
 #fname = "experiments/parallel_exp_cifar_data/cifar_data/results.p"
 
 if __name__ == "__main__":
-    plot_scalability()
-    #path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
-    #plot_dynamic_sketch_experiment(path, save=True)
+    #plot_scalability()
+    path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
+    plot_dynamic_sketch_experiment(path, save=True)
