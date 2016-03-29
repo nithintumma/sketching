@@ -98,7 +98,7 @@ class BatchFDSketch(Sketch):
             return np.dot(np.diagflat(sigma_tilda), mat_vt)
 
     def _svd_sketch(self, mat_b):
-        mat_u, vec_sigma, mat_vt = np.linalg.svd(mat_b, full_matrice=False)
+        mat_u, vec_sigma, mat_vt = np.linalg.svd(mat_b, full_matrices=False)
         squared_sv_center = vec_sigma[self.l-1] ** 2
         if self.track_del:
             self.delta += squared_sv_center
