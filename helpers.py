@@ -136,6 +136,7 @@ def plot_experiments(svd_times, rand_times):
     rand_cores, rand_times = zip(*rand_data)
     #plt.xscale('log')
     plt.plot(svd_cores, svd_times, "-o", label="svd")
+    plt.yscale('log')
     plt.plot(rand_cores, rand_times, "-o", label="rand")
     plt.plot(cores, np.array(cores)/2, '--', label='opt')
     plt.grid()

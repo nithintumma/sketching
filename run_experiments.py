@@ -154,7 +154,7 @@ def completed_experiments():
     runs = 1
     run_parallel_experiment(mat_fname, l, alpha, 
                             batch_size, processors, runs)
-if __name__ == "__main__":
+
     mat_fname = med_cifar_mat_fname
     l = 200
     alphas = np.arange(0.1, 1.1, 0.1)
@@ -165,3 +165,11 @@ if __name__ == "__main__":
                                 alphas=alphas, 
                                 fast=fast,
                                 double=double)
+if __name__ == "__main__":
+    mat_fname = med_cifar_mat_fname
+    l1 = 200
+    l2 = 600
+    alpha = 0.2
+    batch_size = 600
+    dynamic_experiment(mat_fname=mat_fname, l1=l1, l2=l2, 
+                        batch_size=batch_size, plot=False)
