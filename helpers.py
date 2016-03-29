@@ -126,7 +126,10 @@ def plot_experiments(svd_times, rand_times):
     svd_cores, svd_times = zip(*svd_data)
     rand_cores, rand_times = zip(*rand_data)
     plt.plot(svd_cores, svd_times, "-o", label="svd")
+    plt.yscale('log')
     plt.plot(rand_cores, rand_times, "-o", label="rand")
+
     plt.show()
+
 if __name__ == "__main__":
     test_sparse_rand()

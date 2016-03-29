@@ -173,7 +173,7 @@ if __name__ == "__main__":
     alpha = 0.2
     batch_size = 500
     randomized=False
-    num_processes=8
+    num_processes=2
     print "Starting with %d processes" % num_processes
     start_time = time.time()
     sketch = sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, 
