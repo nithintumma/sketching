@@ -28,28 +28,36 @@ def plot_dynamic_sketch_experiment(results_fname, save=True):
     l1_cov_err = results['l1']['err']
     l2_cov_err = results['l2']['err']
     ax_arr[0].plot(changepoints, cov_errs, '-o', label='cov err')
-    ax_arr[0].hlines(l1_cov_err, xlims[0], xlims[1], "r", label='l1 cov err')
-    ax_arr[0].hlines(l2_cov_err, xlims[0], xlims[1], "r", label='l2 cov err')
+    ax_arr[0].hlines(l1_cov_err, xlims[0], xlims[1], linestyle='--',label='l1 bound')
+    ax_arr[0].hlines(l2_cov_err, xlims[0], xlims[1], linestyle='-', label='l2 bound')
     ax_arr[0].set_ylabel("Covariance Reconstruction Error")
+    ax_arr[0].set_xlim(xlims)
+    ax_arr[0].legend(loc='best')
 
     # projection errors
     proj_errs = [results[t]['proj_err'] for t in changepoints]
     l1_proj_err = results['l1']['proj_err']
     l2_proj_err = results['l2']['proj_err']
     ax_arr[1].plot(changepoints, proj_errs, '-o', label='proj err')
-    ax_arr[1].hlines(l1_proj_err, xlims[0], xlims[1], "r", label='l1 proj err')
-    ax_arr[1].hlines(l2_proj_err, xlims[0], xlims[1], "r", label='l2 proj err')
+    ax_arr[1].hlines(l1_proj_err, xlims[0], xlims[1], linestyle='--', label='l1 bound')
+    ax_arr[1].hlines(l2_proj_err, xlims[0], xlims[1], linestyle='-',label='l2 bound')
     ax_arr[1].set_ylabel("Projection Error")
+    ax_arr[1].set_xlim(xlims)
+    ax_arr[1].legend(loc='best')
 
     # l hat bounds
     l1 = results['l1_size']
     l2 = results['l2_size']
     l_bounds = [results[t]['l_bound'] for t in changepoints]
-    ax_arr[2].plot(changepoints, l_bounds, '-o', label='L Bound')
-    ax_arr[2].hlines(l1, xlims[0], xlims[1], "r", label='l1')
-    ax_arr[2].hlines(l2, xlims[0], xlims[1], "r", label='l2')
+    ax_arr[2].plot(changepoints, l_bounds, '-o', label='l Bound')
+    ax_arr[2].hlines(l1, xlims[0], xlims[1], linestyle='--', label='l1')
+    ax_arr[2].hlines(l2, xlims[0], xlims[1], linestyle='-', label='l2')
     ax_arr[2].set_ylabel("Bound on Realized L")
+    ax_arr[2].set_xlabel("Changepoint")
+    ax_arr[2].set_xlim(xlims)
     ax_arr[2].set_ylim(max(l1/1.1, 0), l2 * 1.1)
+    ax_arr[2].legend(loc='best')
+
     # set up plots 
     plt.tight_layout()
     for ax in ax_arr:
@@ -237,5 +245,5 @@ def plot_comparison_experiment(results_fname, save=True):
 #fname = "experiments/parallel_exp_cifar_data/cifar_data/results.p"
 
 if __name__ == "__main__":
-    path = 'experiments/sketch_exp_data_batch_1/data_batch_1/results.p'
-    plot_comparison_experiment(path, save=True)
+    path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
+    plot_dynamic_sketch_experiment(path, save=True)

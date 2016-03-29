@@ -140,6 +140,26 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
 		num_sketches = len(sketches)
 	return sketches[0]
 
+def construct_w2vec_sketch(fname, sketch_path='test_matrices/sketches/'):
+	skech_sizes = [50, 100, 150, 200, 250]
+	randomized = True
+	num_processes = 16
+	alpha = 0.2
+	mat_fname = fname
+	batch_size = 5000
+	
+	for l in sketch_sizes:
+		start_time = time.time()
+		sketch = parallel_bpfd_sketch(mat, l, alpha, batch_size, 
+										randomized=randomized, num_processes=num_processes)
+
+		sketching_time =time.time() - start_time
+		sketch_fname = os.path.join(sketch_path, "w2vec_%d.txt"%l)
+		write_matrix(sketch_fname, sketch)
+		with open("experiments/parallel_results.txt", "a") as f:
+		        f.write("""Mat: %s, Rand: %r, l: %d, 
+		                    b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
+		                                batch_size, alpha, num_processes, sketching_time))
 
 def run_code():
     mat = load_matrix(mat_fname)

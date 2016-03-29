@@ -102,6 +102,7 @@ def test_word2vec():
     with open(path, "rb") as f:
         print "Sucess"
     w_model = models.Word2Vec.load_word2vec_format(path, binary=True)
+    write_matrix("test_matices/w2vec.txt", w_model.syn0)
     return w_model.syn0
 
 def test_sparse_rand():
@@ -118,15 +119,21 @@ def plot_experiments(svd_times, rand_times):
     cores = [2, 4, 8, 16]
     svd_data = []
     rand_data = []
+    svd_norm = svd_times[2]
+    rand_norm = rand_times[2]
     for c in cores:
         if c in svd_times:
-            svd_data.append((c, svd_times[c]))
+            svd_data.append((c, np.array(svd_norm / svd_times[c]) ))
         if c in rand_times:
-            rand_data.append((c, rand_times[c]))
+            rand_data.append((c, np.array(float(rand_norm) / rand_times[c]) ))
     svd_cores, svd_times = zip(*svd_data)
     rand_cores, rand_times = zip(*rand_data)
+    #plt.xscale('log')
     plt.plot(svd_cores, svd_times, "-o", label="svd")
     plt.plot(rand_cores, rand_times, "-o", label="rand")
+    plt.grid()
+    plt.legend(loc='best')
     plt.show()
+
 if __name__ == "__main__":
     test_sparse_rand()
