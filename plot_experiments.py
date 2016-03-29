@@ -28,28 +28,36 @@ def plot_dynamic_sketch_experiment(results_fname, save=True):
     l1_cov_err = results['l1']['err']
     l2_cov_err = results['l2']['err']
     ax_arr[0].plot(changepoints, cov_errs, '-o', label='cov err')
-    ax_arr[0].hlines(l1_cov_err, xlims[0], xlims[1], "r", label='l1 cov err')
-    ax_arr[0].hlines(l2_cov_err, xlims[0], xlims[1], "r", label='l2 cov err')
+    ax_arr[0].hlines(l1_cov_err, xlims[0], xlims[1], linestyle='--',label='l1 bound')
+    ax_arr[0].hlines(l2_cov_err, xlims[0], xlims[1], linestyle='-', label='l2 bound')
     ax_arr[0].set_ylabel("Covariance Reconstruction Error")
+    ax_arr[0].set_xlim(xlims)
+    ax_arr[0].legend(loc='best')
 
     # projection errors
     proj_errs = [results[t]['proj_err'] for t in changepoints]
     l1_proj_err = results['l1']['proj_err']
     l2_proj_err = results['l2']['proj_err']
     ax_arr[1].plot(changepoints, proj_errs, '-o', label='proj err')
-    ax_arr[1].hlines(l1_proj_err, xlims[0], xlims[1], "r", label='l1 proj err')
-    ax_arr[1].hlines(l2_proj_err, xlims[0], xlims[1], "r", label='l2 proj err')
+    ax_arr[1].hlines(l1_proj_err, xlims[0], xlims[1], linestyle='--', label='l1 bound')
+    ax_arr[1].hlines(l2_proj_err, xlims[0], xlims[1], linestyle='-',label='l2 bound')
     ax_arr[1].set_ylabel("Projection Error")
+    ax_arr[1].set_xlim(xlims)
+    ax_arr[1].legend(loc='best')
 
     # l hat bounds
     l1 = results['l1_size']
     l2 = results['l2_size']
     l_bounds = [results[t]['l_bound'] for t in changepoints]
-    ax_arr[2].plot(changepoints, l_bounds, '-o', label='L Bound')
-    ax_arr[2].hlines(l1, xlims[0], xlims[1], "r", label='l1')
-    ax_arr[2].hlines(l2, xlims[0], xlims[1], "r", label='l2')
+    ax_arr[2].plot(changepoints, l_bounds, '-o', label='l Bound')
+    ax_arr[2].hlines(l1, xlims[0], xlims[1], linestyle='--', label='l1')
+    ax_arr[2].hlines(l2, xlims[0], xlims[1], linestyle='-', label='l2')
     ax_arr[2].set_ylabel("Bound on Realized L")
+    ax_arr[2].set_xlabel("Changepoint")
+    ax_arr[2].set_xlim(xlims)
     ax_arr[2].set_ylim(max(l1/1.1, 0), l2 * 1.1)
+    ax_arr[2].legend(loc='best')
+
     # set up plots 
     plt.tight_layout()
     for ax in ax_arr:
@@ -190,15 +198,52 @@ def plot_parallel_sketch_experiment(results_fname, save=True):
 	else:
 	    fig.show()
 
+sketch_t_to_name = {'jlt': 'JLT', 'cw': 'CW', 'batch-pfd': 'BPFD', 'fd': 'FD', 'pfd': 'PFD'}
+def plot_comparison_experiment(results_fname, save=True):
+    with open(results_fname, "rb") as f:
+        results = pickle.load(f)
+    sketch_sizes = np.sort(results['jlt'].keys())
+    # now what do I do? let's make 
+    xlims = [0, sketch_sizes[-1] * 1.1]
+    fig, ax_arr = plt.subplots(3, sharex=True, figsize=FIG_SIZE)
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(-5,5))
+    all_sketches = ['batch-pfd', 'pfd', 'fd', 'jlt', 'cw']
+    
+    for sketch_t in all_sketches:
+        times = [results[sketch_t][l]['time'] for l in sketch_sizes]
+        errs = [results[sketch_t][l]['err'] for l in sketch_sizes]
+        proj_errs = [results[sketch_t][l]['proj_err'] for l in sketch_sizes]
+        # plot 
+        ax_arr[0].plot(sketch_sizes, times, '-o', label=sketch_t_to_name[sketch_t])
+        ax_arr[1].plot(sketch_sizes, errs, '-o', label=sketch_t_to_name[sketch_t])
+        ax_arr[2].plot(sketch_sizes, proj_errs, '-o', label=sketch_t_to_name[sketch_t])
+    
+    ax_arr[0].set_ylabel("Runtime (s)")
+    ax_arr[1].set_ylabel("Covariance Error")
+    ax_arr[2].set_ylabel("Projection Error")
+    ax_arr[2].set_xlabel("Sketch Size")
+    for ax in ax_arr:
+        ax.grid()
+        ax.set_yscale("log")
+        ax.legend(loc='best')
+    plt.tight_layout()
+    if save:
+        exp_dir = os.path.split(results_fname)[0]
+        fig.savefig(os.path.join(exp_dir, "results.png"))
+    else:
+        fig.show()
+
+
 # SAMPLE FILENAMES
 #fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
 #fname = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
 #fname = "experiments/rand_batch_exp_cifar_data/cifar_data/results.p"
 #fname = "experiments/tweak_batch_exp_data_batch_1/data_batch_1/results.p"
+#mat_fname = 'data_batch_1'
+#path = "experiments/tweak_batch_exp_%s/%s/results.p" %(mat_fname, mat_fname)
+#fname = "experiments/rand_batch_exp_cifar_data/cifar_data/results.p"
+#fname = "experiments/parallel_exp_cifar_data/cifar_data/results.p"
 
 if __name__ == "__main__":
-	mat_fname = 'data_batch_1'
-	path = "experiments/tweak_batch_exp_%s/%s/results.p" %(mat_fname, mat_fname)
-	fname = "experiments/rand_batch_exp_cifar_data/cifar_data/results.p"
-	fname = "experiments/parallel_exp_cifar_data/cifar_data/results.p"
-	plot_parallel_sketch_experiment(fname, save=True)
+    path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
+    plot_dynamic_sketch_experiment(path, save=True)

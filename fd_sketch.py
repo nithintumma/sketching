@@ -64,37 +64,66 @@ class BatchFDSketch(Sketch):
             self._sketch_func = self._svd_sketch
         self.sketch = None
 
-    #TODO: make this faster by doing the multiplication with the smaller matrix
-    def _svd_sketch(self, mat_b):
-        mat_u, vec_sigma, mat_vt = ln.svd(mat_b, full_matrices=False) 
-        if (self.l + self.b_size > self.m):
-            # then vec_sigma, mat_vt will be m, m X m respectively, we need to make them larger 
-            extra_rows = self.l + self.b_size - self.m 
+    def old_sketches(self):
+        #TODO: make this faster by doing the multiplication with the smaller matrix
+        def _svd_sketch(self, mat_b):
+            mat_u, vec_sigma, mat_vt = ln.svd(mat_b, full_matrices=False) 
+            if (self.l + self.b_size > self.m):
+                # then vec_sigma, mat_vt will be m, m X m respectively, we need to make them larger 
+                extra_rows = self.l + self.b_size - self.m 
+                vec_sigma = np.hstack((vec_sigma, np.zeros(extra_rows)))
+                mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
+            # obtain squared singular value for threshold
+            squared_sv_center = vec_sigma[self.l-1] ** 2
+            if self.track_del:
+                self.delta = self.delta + squared_sv_center
+            # update sigma to shrink the row norms
+            sigma_tilda = [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)]
+            # update matrix B where at least half rows are all zero
+            return np.dot(np.diagflat(sigma_tilda), mat_vt)
+        # make these all faster and do the operations in place 
+        def _rand_svd_sketch(self, mat_b):
+            # use fbpca rand_svd (PCA) function to approximate PCA 
+            # only want first l values, 
+            # do we care about block size for power iteration method? 
+            mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
+            # need to return an (l + b) X ncols matrix, so add b rows of zero to result 
+            extra_rows = self.b_size 
             vec_sigma = np.hstack((vec_sigma, np.zeros(extra_rows)))
             mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
-        # obtain squared singular value for threshold
-        squared_sv_center = vec_sigma[self.l-1] ** 2
-        if self.track_del:
-            self.delta = self.delta + squared_sv_center
-        # update sigma to shrink the row norms
-        sigma_tilda = [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)]
-        # update matrix B where at least half rows are all zero
-        return np.dot(np.diagflat(sigma_tilda), mat_vt)
+            squared_sv_center = vec_sigma[self.l-1] ** 2
+            if self.track_del:
+                self.delta = self.delta + squared_sv_center
+            sigma_tilda = [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)]
+            return np.dot(np.diagflat(sigma_tilda), mat_vt)
 
-    def _rand_svd_sketch(self, mat_b):
-        # use fbpca rand_svd (PCA) function to approximate PCA 
-        # only want first l values, 
-        # do we care about block size for power iteration method? 
-        mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
-        # need to return an (l + b) X ncols matrix, so add b rows of zero to result 
-        extra_rows = self.b_size 
-        vec_sigma = np.hstack((vec_sigma, np.zeros(extra_rows)))
-        mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
+    def svd_sketch(self, mat_b):
+        mat_u, vec_sigma, mat_vt = np.linalg.svd(mat_b, full_matrice=False)
         squared_sv_center = vec_sigma[self.l-1] ** 2
         if self.track_del:
-            self.delta = self.delta + squared_sv_center
-        sigma_tilda = [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)]
-        return np.dot(np.diagflat(sigma_tilda), mat_vt)
+            self.delta += squared_sv_center
+        # below can be done in numpy for sure 
+        trunc_vec = vec_sigma[:]
+        trunc_vec = trunc_vec **2 - squared_sv_center
+        trunc_vec[trunc_vec < 0] = 0
+        np.sqrt(trunc_vec, out=trunc_vec)
+        mat_b[:self.l, :] = (mat_vt.T * vec_sigma).T
+        mat_b[self.l:, :] = np.zeros((self.b_size, self.m))
+
+    def rand_svd_sketch(self, mat_b):
+        # does computation in place 
+        # works for dense mat_b
+        mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
+        squared_sv_center = vec_sigma[self.l - 1] ** 2
+        # below can be done in numpy for sure 
+        trunc_vec = vec_sigma[:]
+        trunc_vec = trunc_vec **2 - squared_sv_center
+        trunc_vec[trunc_vec < 0] = 0
+        np.sqrt(trunc_vec, out=trunc_vec)
+        sigma_tilde = vec_sigma
+        #sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        mat_b[:self.l, :] = (mat_vt.T * vec_sigma).T
+        mat_b[self.l:, :] = np.zeros((self.b_size, self.m))
 
     def compute_sketch(self):
         start_time = time.time()
@@ -102,7 +131,8 @@ class BatchFDSketch(Sketch):
             return self.sketch
         mat_b = np.zeros([self.l + self.b_size, self.m])
         # compute zero valued row list
-        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
+        zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
         # repeat inserting each row of matrix A 
         for i in range(0, self.mat.shape[0]):
             # insert a row into matrix B
@@ -112,12 +142,13 @@ class BatchFDSketch(Sketch):
             # if there is no more zero valued row
             if len(zero_rows) == 0:
                 # compute SVD of matrix B, we want to find the first l
-                mat_b  = self._sketch_func(mat_b)
+                self._sketch_func(mat_b)
                 # update the zero valued row list
-                zero_rows = np.nonzero([round(s, 7) == 0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
+                zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
         # why do we need this here? 
         # do we need to do a sketch one last time at the end? 
-        mat_b = self._sketch_func(mat_b)
+        self._sketch_func(mat_b)
         # get rid of extra non-zero rows when we return 
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time
@@ -158,7 +189,8 @@ class DynamicFDSketch(BatchFDSketch):
             return self.sketch
         mat_b = np.zeros([self.l + self.b_size, self.m])
         # compute zero valued row list
-        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+        zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
+        zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
         # repeat inserting each row of matrix A 
         for i in range(0, self.mat.shape[0]):
             # insert a row into matrix B
@@ -167,7 +199,8 @@ class DynamicFDSketch(BatchFDSketch):
                 # do we also need to add zero rows to the sketch? probably 
                 num_new_rows = self.l2 + self.b_size - mat_b.shape[0]
                 mat_b = np.vstack((mat_b, np.zeros((num_new_rows, mat_b.shape[1]))))
-                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
+                zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
                 self.del_1 = self.delta
                 self.delta = 0.0
             mat_b[zero_rows[0], :] = self.mat[i, :]
@@ -176,12 +209,13 @@ class DynamicFDSketch(BatchFDSketch):
             # if there is no more zero valued row
             if len(zero_rows) == 0:
                 # compute SVD of matrix B, we want to find the first l
-                mat_b  = self._sketch_func(mat_b)
+                self._sketch_func(mat_b)
                 # update the zero valued row list
-                zero_rows = np.nonzero([round(s, 7) == 0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
+                zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
+                zero_rows = np.hstack((zero_rows, np.arange(self.l, self.l + self.b_size))).tolist()
         # why do we need this here? 
         # do we need to do a sketch one last time at the end? 
-        mat_b = self._sketch_func(mat_b)
+        self._sketch_func(mat_b)
         # get rid of extra non-zero rows when we return 
         self.sketch = mat_b[:self.l, :]
         self.del_2 = self.delta
@@ -203,7 +237,7 @@ class DynamicFDSketch(BatchFDSketch):
         self.l_hat = self.l1 * ((1.0 + c_d * c_l) / (1.0 + c_d))
         return self.l_hat 
 
-# Fast/Slow PFD sketch
+# Update Tweak PFD Sketch 
 class TweakPFDSketch(Sketch):
     def __init__(self, mat, l, alpha, fast=True):
         assert (alpha <= 1 and alpha > 0)
@@ -230,7 +264,8 @@ class TweakPFDSketch(Sketch):
         # update sigma to shrink the row norms, only subtract from alpha_ind to end of vector 
         sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
         # update matrix B where at least half rows are all zero
-        return np.dot(np.diagflat(sigma_tilde), mat_vt)
+        # don't know about batch size here 
+        mat_b[:] = (mat_vt.T * np.array(sigma_tilde)).T
 
     def compute_sketch(self):
         start_time = time.time()
@@ -248,12 +283,12 @@ class TweakPFDSketch(Sketch):
             # if there is no more zero valued row
             if len(zero_rows) == 0:
                 # compute SVD of matrix B, we want to find the first l
-                mat_b  = self._sketch_func(mat_b)
+                self._sketch_func(mat_b)
                 # update the zero valued row list
                 zero_rows = np.nonzero([round(s, 7) == 0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # why do we need this here? 
         # do we need to do a sketch one last time at the end? 
-        mat_b = self._sketch_func(mat_b)
+        self._sketch_func(mat_b)
         # get rid of extra non-zero rows when we return 
         self.sketch = mat_b[:self.l, :]
         self.sketching_time = time.time() - start_time
@@ -280,20 +315,51 @@ class BatchPFDSketch(BatchFDSketch):
 
     # override _svd_sketch and _random_svd_sketch to use del_ind and alpha_ind
     def _svd_sketch(self, mat_b):
+        #raise Exception("Not complete imlementation")
         mat_u, vec_sigma, mat_vt = ln.svd(mat_b, full_matrices=False) 
-        if (self.l + self.b_size > self.m):
-            # then vec_sigma, mat_vt will be m, m X m respectively, we need to make them larger 
-            extra_rows = self.l + self.b_size - self.m 
-            vec_sigma = np.hstack((vec_sigma, np.zeros(extra_rows)))
-            mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
-        # obtain squared singular value for threshold
         squared_sv_center = vec_sigma[self.del_ind] ** 2
-        # update sigma to shrink the row norms, only subtract from alpha_ind to end of vector 
+        if self.track_del:
+            self.delta += squared_sv_center
+        # below can be done in numpy for sure 
+        #trunc_vec = vec_sigma[self.alpha_ind:]
+        #trunc_vec = trunc_vec **2 - squared_sv_center
+        #trunc_vec[trunc_vec < 0] = 0.0
+        # what we want to do is take the trunacted mat_vt
         sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
-        # update matrix B where at least half rows are all zero
-        return np.dot(np.diagflat(sigma_tilde), mat_vt)
+        # just do the multiplication with the top l 
+        mat_b[:self.l, :] = (mat_vt[:self.l, :].T * np.array(sigma_tilde)[:self.l]).T
+        #extra_rows = self.l + self.b_size - self.m 
+        extra_rows = self.b_size 
+        mat_b[self.l:, :] = np.zeros((extra_rows, self.m))
+
+    def _rand_svd_sketch(self, mat_b):
+        # does computation in place 
+        # works for dense mat_b
+        mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
+        squared_sv_center = vec_sigma[self.del_ind] ** 2
+        # below can be done in numpy for sure 
+        #trunc_vec = vec_sigma[self.alpha_ind:]
+        #trunc_vec = trunc_vec **2 - squared_sv_center
+        #trunc_vec[trunc_vec < 0] = 0
+        #np.sqrt(trunc_vec, out=trunc_vec)
+        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+        mat_b[:self.l, :] = (mat_vt.T * np.array(sigma_tilde)).T
+        mat_b[self.l:, :] = np.zeros((self.b_size, self.m))
 
     def _old_rand_svd_sketch(self, mat_b):
+        def old_svd():
+            if (self.l + self.b_size > self.m):
+                # then vec_sigma, mat_vt will be m, m X m respectively, we need to make them larger 
+                extra_rows = self.l + self.b_size - self.m 
+                vec_sigma = np.hstack((vec_sigma, np.zeros(extra_rows)))
+                mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
+            # obtain squared singular value for threshold
+            squared_sv_center = vec_sigma[self.del_ind] ** 2
+            # update sigma to shrink the row norms, only subtract from alpha_ind to end of vector 
+            sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
+            # update matrix B where at least half rows are all zero
+            mat_b[:] = np.dot(np.diagflat(sigma_tilde), mat_vt)
+
         # use fbpca rand_svd (PCA) function to approximate PCA 
         # do we care about block size for power iteration method? 
         mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
@@ -307,17 +373,6 @@ class BatchPFDSketch(BatchFDSketch):
 
     # override _random_svd_sketch to use del_ind and alpha_ind
     # update this to be faster, test it 
-    def _rand_svd_sketch(self, mat_b):
-        # use fbpca rand_svd (PCA) function to approximate PCA 
-        # do we care about block size for power iteration method? 
-        mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
-        # need to return an (l + b) X ncols matrix, so add b rows of zero to result 
-        extra_rows = self.b_size 
-        vec_sigma = np.hstack((vec_sigma, np.zeros(extra_rows)))
-        mat_vt = np.vstack((mat_vt, np.zeros((extra_rows, self.m))))
-        squared_sv_center = vec_sigma[self.del_ind] ** 2
-        sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
-        return np.dot(np.diagflat(sigma_tilde), mat_vt)
 
     def update_sketch(self, sketch):
         # allows us to start with a non-zero sketch, which is useful for merging 
@@ -336,10 +391,10 @@ class BatchPFDSketch(BatchFDSketch):
             # if there is no more zero valued row
             if len(zero_rows) == 0:
                 # compute SVD of matrix B, we want to find the first l
-                mat_b  = self._sketch_func(mat_b)
+                self._sketch_func(mat_b)
                 # update the zero valued row list
                 zero_rows = np.nonzero([round(s, 7) == 0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
-        mat_b = self._sketch_func(mat_b)
+        self._sketch_func(mat_b)
         # get rid of extra b_size rows when we return 
         self.sketch = mat_b[:self.l, :]
         return self.sketch
@@ -471,19 +526,14 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
         squared_sv_center = vec_sigma[self.del_ind] ** 2
         # below can be done in numpy for sure 
-        trunc_vec = vec_sigma[:self.alpha_ind]
+        trunc_vec = vec_sigma[self.alpha_ind:]
         trunc_vec = trunc_vec **2 - squared_sv_center
         trunc_vec[trunc_vec < 0] = 0
         np.sqrt(trunc_vec, out=trunc_vec)
         sigma_tilde = vec_sigma
         #sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
-        # saves us from having to construct a diagonal matrix 
-        # what if we modified in place here? 
         mat_b[:self.l, :] = (mat_vt.T * np.array(sigma_tilde)).T
         mat_b[self.l:, :] = np.zeros((self.b_size, self.m))
-
-        #new_mat_b = (mat_vt.T * np.array(sigma_tilde)).T
-        #return np.vstack((new_mat_b, np.zeros((self.b_size, self.m))))
 
     # why does this not work? 
     def _sparse_rand_sketch(self, mat_b):        
@@ -533,9 +583,6 @@ class SparseBatchPFDSketch(BatchPFDSketch):
             self._sketch_func = self._fast_rand_sketch
         # what do we do differently here? we need to iterate over the nzrow_inds,
         mat_b = np.zeros([self.l + self.b_size, self.m])
-        # compute zero valued row list
-        #zero_rows = np.nonzero([round(s, 7) == 0.0 
-        #                for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # other way: np.where(~mat_b.any(axis=1))[0]
         # zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
         zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b[:self.l, :], axis = 1)])[0]
@@ -543,7 +590,6 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         # iterate through the nzrow_inds
         for i in self.nzrow_inds:
             mat_b[zero_rows[0], :] = self.mat.getrow(i).todense()
-            #zero_rows = zero_rows[1:]
             zero_rows.remove(zero_rows[0])
             if len(zero_rows) == 0:
                 print "sketching ", i
