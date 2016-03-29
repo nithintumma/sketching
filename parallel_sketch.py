@@ -27,7 +27,6 @@ def sparse_sketch(args):
 	return sketch_obj.compute_sketch()
 
 def sparse_randomized_sketch(args):
-	print "initing sketch object"
 	mat, l, b_size, alpha = args
 	sketch_obj = SparseBatchPFDSketch(mat, l, b_size, alpha, randomized=True)
 	return sketch_obj.compute_sketch()
@@ -92,6 +91,7 @@ def sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, randomized=False, num
         # need csr to do row slicing 
         csr_mat = mat.tocsr()
         # lets assume that every row is non-zero for now
+        print "About to construct the arguments"
         for i in range(num_processes):
             if i == num_processes - 1:
                 s_ind = i*num_rows_per_p
@@ -167,13 +167,13 @@ if __name__ == "__main__":
     mat_fname = 'ESOC.mtx'
     with open(os.path.join("test_matrices", mat_fname), "rb") as mfile:
         big_mat = mmread(mfile)
-    mat = big_mat.tocsr()[:100000, :].tocoo()
+    mat = big_mat.tocoo()
     print "Mat Shape: ", mat.shape
     l = 200
     alpha = 0.2
-    batch_size = 5000
-    randomized=True
-    num_processes=4
+    batch_size = 500
+    randomized=False
+    num_processes=8
     print "Starting with %d processes" % num_processes
     start_time = time.time()
     sketch = sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, 

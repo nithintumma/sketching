@@ -8,6 +8,7 @@ import os
 import cPickle as pickle
 from gensim import models
 from fbpca import pca as rand_svd
+import matplotlib.pyplot as plt
 
 MATRIX_DIR = 'test_matrices/'
 
@@ -113,5 +114,19 @@ def test_sparse_rand():
     rand_svd(Ad, 200)
     print "Dense time: ", time.time() - start_time
 
+def plot_experiments(svd_times, rand_times):
+    cores = [2, 4, 8, 16]
+    svd_data = []
+    rand_data = []
+    for c in cores:
+        if c in svd_times:
+            svd_data.append((c, svd_times[c]))
+        if c in rand_times:
+            rand_data.append((c, rand_times[c]))
+    svd_cores, svd_times = zip(*svd_data)
+    rand_cores, rand_times = zip(*rand_data)
+    plt.plot(svd_cores, svd_times, "-o", label="svd")
+    plt.plot(rand_cores, rand_times, "-o", label="rand")
+    plt.show()
 if __name__ == "__main__":
     test_sparse_rand()
