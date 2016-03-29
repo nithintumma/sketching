@@ -190,15 +190,52 @@ def plot_parallel_sketch_experiment(results_fname, save=True):
 	else:
 	    fig.show()
 
+sketch_t_to_name = {'jlt': 'JLT', 'cw': 'CW', 'batch-pfd': 'BPFD', 'fd': 'FD', 'pfd': 'PFD'}
+def plot_comparison_experiment(results_fname, save=True):
+    with open(results_fname, "rb") as f:
+        results = pickle.load(f)
+    sketch_sizes = np.sort(results['jlt'].keys())
+    # now what do I do? let's make 
+    xlims = [0, sketch_sizes[-1] * 1.1]
+    fig, ax_arr = plt.subplots(3, sharex=True, figsize=FIG_SIZE)
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(-5,5))
+    all_sketches = ['batch-pfd', 'pfd', 'fd', 'jlt', 'cw']
+    
+    for sketch_t in all_sketches:
+        times = [results[sketch_t][l]['time'] for l in sketch_sizes]
+        errs = [results[sketch_t][l]['err'] for l in sketch_sizes]
+        proj_errs = [results[sketch_t][l]['proj_err'] for l in sketch_sizes]
+        # plot 
+        ax_arr[0].plot(sketch_sizes, times, '-o', label=sketch_t_to_name[sketch_t])
+        ax_arr[1].plot(sketch_sizes, errs, '-o', label=sketch_t_to_name[sketch_t])
+        ax_arr[2].plot(sketch_sizes, proj_errs, '-o', label=sketch_t_to_name[sketch_t])
+    
+    ax_arr[0].set_ylabel("Runtime (s)")
+    ax_arr[1].set_ylabel("Covariance Error")
+    ax_arr[2].set_ylabel("Projection Error")
+    ax_arr[2].set_xlabel("Sketch Size")
+    for ax in ax_arr:
+        ax.grid()
+        ax.set_yscale("log")
+        ax.legend(loc='best')
+    plt.tight_layout()
+    if save:
+        exp_dir = os.path.split(results_fname)[0]
+        fig.savefig(os.path.join(exp_dir, "results.png"))
+    else:
+        fig.show()
+
+
 # SAMPLE FILENAMES
 #fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
 #fname = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
 #fname = "experiments/rand_batch_exp_cifar_data/cifar_data/results.p"
 #fname = "experiments/tweak_batch_exp_data_batch_1/data_batch_1/results.p"
+#mat_fname = 'data_batch_1'
+#path = "experiments/tweak_batch_exp_%s/%s/results.p" %(mat_fname, mat_fname)
+#fname = "experiments/rand_batch_exp_cifar_data/cifar_data/results.p"
+#fname = "experiments/parallel_exp_cifar_data/cifar_data/results.p"
 
 if __name__ == "__main__":
-	mat_fname = 'data_batch_1'
-	path = "experiments/tweak_batch_exp_%s/%s/results.p" %(mat_fname, mat_fname)
-	fname = "experiments/rand_batch_exp_cifar_data/cifar_data/results.p"
-	fname = "experiments/parallel_exp_cifar_data/cifar_data/results.p"
-	plot_parallel_sketch_experiment(fname, save=True)
+    path = 'experiments/sketch_exp_data_batch_1/data_batch_1/results.p'
+    plot_comparison_experiment(path, save=True)
