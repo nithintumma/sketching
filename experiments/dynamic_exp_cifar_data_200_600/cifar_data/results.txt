@@ -1,12 +1,12 @@
-Dynamic FD Sketch Experiment: dynamic_exp_cifar_data_200_600, Matrix: cifar_data, Initial Sketch Size: 200, End Sketch Size: 600, Batch Size: 500
+Dynamic FD Sketch Experiment: dynamic_exp_cifar_data_200_600, Matrix: cifar_data, Initial Sketch Size: 200, End Sketch Size: 600, Batch Size: 600
 
-Change Point: 1, Runtime: 611.151012 secs, Err: 0.000014, Proj Err: 1.192573
-Change Point: 5001, Runtime: 575.652523 secs, Err: 0.000021, Proj Err: 1.194339
-Change Point: 10001, Runtime: 537.665208 secs, Err: 0.000029, Proj Err: 1.196721
-Change Point: 15001, Runtime: 499.399861 secs, Err: 0.000038, Proj Err: 1.199744
-Change Point: 20001, Runtime: 462.536786 secs, Err: 0.000046, Proj Err: 1.204035
-Change Point: 25001, Runtime: 424.820026 secs, Err: 0.000054, Proj Err: 1.209456
-Change Point: 30001, Runtime: 386.983451 secs, Err: 0.000063, Proj Err: 1.217373
-Change Point: 35001, Runtime: 349.343771 secs, Err: 0.000071, Proj Err: 1.229405
-Change Point: 40001, Runtime: 311.463172 secs, Err: 0.000080, Proj Err: 1.252586
-Change Point: 45001, Runtime: 273.444979 secs, Err: 0.000088, Proj Err: 1.313360
+Change Point: 1, Runtime: 505.151682 secs, Err: 0.000014, Proj Err: 1.000000
+Change Point: 5001, Runtime: 488.141529 secs, Err: 0.003102, Proj Err: 1.000021
+Change Point: 10001, Runtime: 461.782400 secs, Err: 0.000028, Proj Err: 1.000024
+Change Point: 15001, Runtime: 432.397000 secs, Err: 0.000036, Proj Err: 1.000037
+Change Point: 20001, Runtime: 397.419072 secs, Err: 0.002829, Proj Err: 1.000063
+Change Point: 25001, Runtime: 370.373013 secs, Err: 0.000052, Proj Err: 1.000066
+Change Point: 30001, Runtime: 341.951715 secs, Err: 0.000060, Proj Err: 1.000078
+Change Point: 35001, Runtime: 307.099634 secs, Err: 0.002400, Proj Err: 1.000100
+Change Point: 40001, Runtime: 280.023215 secs, Err: 0.000076, Proj Err: 1.000100
+Change Point: 45001, Runtime: 250.642798 secs, Err: 0.000084, Proj Err: 1.000107
