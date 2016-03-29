@@ -233,6 +233,37 @@ def plot_comparison_experiment(results_fname, save=True):
     else:
         fig.show()
 
+def plot_scalability(results_fname="experiments/parallel_ESOC/ESOC/results.p"):
+    with open(results_fname, "rb") as f:
+        results = pickle.load(f)
+    fig = plt.figure()
+    cores = [2, 4, 8, 16]
+    svd_data = []
+    rand_data = []
+    svd_times =results['svd']
+    rand_times = results['rand']
+    print svd_times
+    svd_norm = svd_times[2]
+    rand_norm = rand_times[2]
+    for c in cores:
+        if c in svd_times:
+            svd_data.append((c, np.array(svd_norm / svd_times[c]) ))
+        if c in rand_times:
+            rand_data.append((c, np.array(float(rand_norm) / rand_times[c]) ))
+    svd_cores, svd_times = zip(*svd_data)
+    rand_cores, rand_times = zip(*rand_data)
+    #plt.xscale('log')
+    plt.plot(svd_cores, svd_times, "-o", label="svd")
+    plt.plot(rand_cores, rand_times, "-o", label="rand")
+    plt.plot(cores, np.array(cores)/2, '--', label='opt')
+    plt.xlabel("Cores")
+    plt.ylabel("Speedup")
+    plt.grid()
+    plt.legend(loc='best')
+    fig_path = os.path.split(results_fname)[0]
+    fig.savefig(os.path.join(fig_path, "results.png"))
+    plt.show()
+    pass
 
 # SAMPLE FILENAMES
 #fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
@@ -245,5 +276,6 @@ def plot_comparison_experiment(results_fname, save=True):
 #fname = "experiments/parallel_exp_cifar_data/cifar_data/results.p"
 
 if __name__ == "__main__":
-    path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
-    plot_dynamic_sketch_experiment(path, save=True)
+    plot_scalability()
+    #path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
+    #plot_dynamic_sketch_experiment(path, save=True)

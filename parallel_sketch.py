@@ -8,7 +8,7 @@ from scipy.io import mmread
 
 from fd_sketch import (SparseBatchPFDSketch, BatchPFDSketch, 
                         calculateError, calculate_projection_error)
-from helpers import load_matrix 
+from helpers import load_matrix, write_matrix, load_word2vec
 
 
 def randomized_sketch(args):
@@ -145,9 +145,10 @@ def construct_w2vec_sketch(fname, sketch_path='test_matrices/sketches/'):
 	randomized = True
 	num_processes = 16
 	alpha = 0.2
+	mat = load_word2vec(fname)
 	mat_fname = fname
+
 	batch_size = 5000
-	
 	for l in sketch_sizes:
 		start_time = time.time()
 		sketch = parallel_bpfd_sketch(mat, l, alpha, batch_size, 
@@ -160,6 +161,8 @@ def construct_w2vec_sketch(fname, sketch_path='test_matrices/sketches/'):
 		        f.write("""Mat: %s, Rand: %r, l: %d, 
 		                    b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
 		                                batch_size, alpha, num_processes, sketching_time))
+
+# experiment that changes sketch size and sees how randomized scales relative to deterministic?
 
 def run_code():
     mat = load_matrix(mat_fname)

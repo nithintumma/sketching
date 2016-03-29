@@ -105,6 +105,12 @@ def test_word2vec():
     write_matrix("test_matices/w2vec.txt", w_model.syn0)
     return w_model.syn0
 
+def load_word2vec(fname, write=True):
+    w_model = models.Word2Vec.load_word2vec_format(fname, binary=False)
+    if write:
+        write_matrix("test_matices/w2vec.txt", w_model.syn0)
+    return w_models.syn0
+
 def test_sparse_rand():
     A = sps.rand(10000, 30000, 0.001)
     Ad = A.todense()
@@ -131,6 +137,7 @@ def plot_experiments(svd_times, rand_times):
     #plt.xscale('log')
     plt.plot(svd_cores, svd_times, "-o", label="svd")
     plt.plot(rand_cores, rand_times, "-o", label="rand")
+    plt.plot(cores, np.array(cores)/2, '--', label='opt')
     plt.grid()
     plt.legend(loc='best')
     plt.show()

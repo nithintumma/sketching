@@ -275,6 +275,7 @@ class TweakPFDSketch(Sketch):
         # compute zero valued row list
         zero_rows = np.nonzero([round(s, 7) == 0.0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
         # repeat inserting each row of matrix A 
+        percent = 0
         for i in range(0, self.mat.shape[0]):
             # insert a row into matrix B
             mat_b[zero_rows[0], :] = self.mat[i, :]
@@ -283,6 +284,9 @@ class TweakPFDSketch(Sketch):
             # if there is no more zero valued row
             if len(zero_rows) == 0:
                 # compute SVD of matrix B, we want to find the first l
+                if self.mat.shape[0] / i > percent:
+                    percent = self.mat.shape[0] / i
+                    print i
                 self._sketch_func(mat_b)
                 # update the zero valued row list
                 zero_rows = np.nonzero([round(s, 7) == 0 for s in np.sum(mat_b, axis = 1)])[0].tolist()
