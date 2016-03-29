@@ -159,7 +159,7 @@ if __name__ == "__main__":
     l = 200
     alphas = np.arange(0.1, 1.1, 0.1)
     fast=True
-    double=True
+    double=False
     tweak_vs_batched_experiment(mat_fname=mat_fname,
                                 l=l,
                                 alphas=alphas, 

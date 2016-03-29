@@ -2,5 +2,23 @@ Mat: small_data_batch_1, Rand: False, l: 100, b: 100, alpha: 0.200000, Processes
 Mat: cifar_data, Rand: False, l: 100, b: 100, alpha: 0.200000, Processes: 4, Time: 35.317939 
 Mat: cifar_data, Rand: False, l: 100, 
                             b: 100, alpha: 0.200000, Processes: 1, Time: 117.440314
-Mat: ESOC.mtx, Rand: True, l: 200, 
+Mat: ESOC.mtx(100,000 rows), Rand: True, l: 200, 
                         b: 5000, alpha: 0.200000, Processes: 4, Time: 266.207886
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 8, Time: 917.144806
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 4, Time: 1111.332838
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 16, Time: 403.973797
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 16, Time: 404.386221
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 4, Time: 1152.317131
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 8, Time: 640.319638
+Mat: ESOC.mtx, Rand: True, l: 200, 
+                        b: 5000, alpha: 0.200000, Processes: 2, Time: 2117.699481
+Mat: ESOC.mtx, Rand: False, l: 200, 
+                        b: 500, alpha: 0.200000, Processes: 16, Time: 607.281477
+Mat: ESOC.mtx, Rand: False, l: 200, 
+                        b: 500, alpha: 0.200000, Processes: 8, Time: 1049.628316
