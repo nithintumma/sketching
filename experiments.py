@@ -563,7 +563,7 @@ def kmeans_experiment(on_orig=True):
             start_time = time.time()
             cost, cluster_centers = train_kmeans(mat, k, num_processes=num_processes)
             train_time = time.time() - start_time
-            results['opt'][k] = {'time': train_time, 'cost': test_cost}
+            results['opt'][k] = {'time': train_time, 'cost': cost}
     if on_orig:
         with open('experiments/kmeans/w2vec/results.p', "wb") as f:
             pickle.dump(results, f)
