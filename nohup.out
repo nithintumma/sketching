@@ -18,3 +18,6 @@ Traceback (most recent call last):
   File "/home/ntumma/code/sketching/experiments.py", line 217, in __init__
     assert(sketch_t in SUPPORTED_SKETCHES) 
 NameError: global name 'SUPPORTED_SKETCHES' is not defined
+Mat Shape:  (345241, 345241)
+Starting with 16 processes
+Calling Sparse parallel

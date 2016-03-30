@@ -240,7 +240,7 @@ def sketch_sparse():
     alpha = 0.2
     batch_size = 5000
     randomized=True
-    num_processes=8
+    num_processes=16
     print "Starting with %d processes" % num_processes
     start_time = time.time()
     sketch = sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, 
