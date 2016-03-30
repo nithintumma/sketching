@@ -263,7 +263,7 @@ def plot_scalability(results_fname="experiments/parallel_ESOC/ESOC/results.p"):
     fig_path = os.path.split(results_fname)[0]
     fig.savefig(os.path.join(fig_path, "results.png"))
     plt.show()
-    pass
+
 
 def plot_kmeans(results_fname='experiments/kmeans/w2vec/results.p'):
     # what does the plot look like
@@ -273,8 +273,26 @@ def plot_kmeans(results_fname='experiments/kmeans/w2vec/results.p'):
     clusters = [5, 10, 15, 20]
     opt_data = []
     sketch_data = []
-    
+    for k in clusters:
+        opt_data.append((results['opt'][k]['time'], results['opt'][k]['cost']))
+        sketch_data.append((results['sketch'][k]['time'], results['sketch'][k]['cost']))
+    opt_times, opt_costs = zip(*opt_data)
+    sketch_times, sketch_costs = zip(*sketch_data)
+    print opt_times 
+    print np.array(sketch_times) + 64
+    print sketch_costs
+    print opt_costs
+    plt.plot(clusters, np.array(sketch_costs)/np.array(opt_costs), '-o', label='sketch')
+    plt.yscale('log')
+    #plt.plot(clusters, opt_costs, '-o', label="opt")
 
+    # what do we do for times? 
+    plt.xlabel("Clusters")
+    plt.ylabel("K-Means Cost")
+    plt.legend(loc='best')
+    fig_path = os.path.split(results_fname)[0]
+    fig.savefig(os.path.join(fig_path, "results.png"))
+    plt.show()
 
 # SAMPLE FILENAMES
 #fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
@@ -288,5 +306,6 @@ def plot_kmeans(results_fname='experiments/kmeans/w2vec/results.p'):
 
 if __name__ == "__main__":
     #plot_scalability()
-    path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
-    plot_dynamic_sketch_experiment(path, save=True)
+    #path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
+    #plot_dynamic_sketch_experiment(path, save=True)
+    plot_kmeans()
