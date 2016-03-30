@@ -6,7 +6,7 @@ import numpy as np
 from scipy.io import mmread
 import matplotlib.pyplot as plt 
 import cPickle as pickle 
-
+from gensim import models
 from helpers import load_matrix, write_matrix
 from fd_sketch import (JLTSketch, CWSparseSketch, FDSketch, BatchFDSketch, PFDSketch, 
                         BatchPFDSketch, DynamicFDSketch, TweakPFDSketch, calculateError, 
@@ -545,10 +545,10 @@ class ParallelPFDSketchExperiment(Experiment):
 
 from cluster import train_kmeans, kmeans_objective
 def kmeans_experiment(on_orig=True):
-    path = "../data/GoogleNews-vectors-negative300.bin"
+    path = "../../data/GoogleNews-vectors-negative300.bin"
     wmodel = models.Word2Vec.load_word2vec_format(path, binary=True)
     mat = wmodel.syn0
-    sketch = load_matrix("sketches/")
+    sketch = load_matrix("sketches/w2vec_250.txt")
     clusters = [5, 10, 15, 20]
     num_processes = 8
     results = {'opt': {}, 'sketch': {}}

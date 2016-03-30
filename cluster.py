@@ -24,6 +24,7 @@ def kmeans_objective(mat, centroids, labels=None):
 	return cost
 
 def cluster_kmeans(mat, k=None):
+        raise Exception("Use train_kmeans")
 	if k is None:
 		k = max(mat.shape[0]/5, 2)
 	mat_centroids, mat_labels = kmeans(mat, k)
@@ -31,6 +32,7 @@ def cluster_kmeans(mat, k=None):
 
 def train_kmeans(mat, k, num_processes=1):
 	model = KMeans(n_clusters=k, n_jobs=num_processes)
+        model.fit(mat)
 	# get the objective function and the labels! 
 	cost = kmeans_objective(mat, model.cluster_centers_, model.labels_)
 	return cost, model.cluster_centers_

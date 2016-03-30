@@ -208,17 +208,39 @@ def sketch_w2vec():
                                     (path, randomized, l, batch_size, 
                                     alpha, num_processes, sketching_time))
 
-def sketch_ESOC():
-    mat_fname = 'ESOC.mtx'
+def sketch_c():
+    mat_fname = 'c-big.mtx'
+    with open(os.path.join("test_matrices", mat_fname), "rb") as mfile:
+        big_mat = mmread(mfile)
+    mat = big_mat.tocsr()[:10000, :].tocoo()
+    print "Mat Shape: ", mat.shape
+    l = 200
+    alpha = 0.2
+    batch_size = 1,000
+    randomized=True
+    num_processes=1
+    print "Starting with %d processes" % num_processes
+    start_time = time.time()
+    sketch = sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, 
+                randomized=randomized, num_processes=num_processes)
+    sketching_time = time.time() - start_time 
+    with open("experiments/parallel_results.txt", "a") as f:
+            f.write("""Mat: %s, Rand: %r, l: %d, 
+                        b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
+                                    batch_size, alpha, num_processes, sketching_time))
+
+def sketch_sparse():
+    #mat_fname = 'ESOC.mtx'
+    mat_fname = 'c-big.mtx' 
     with open(os.path.join("test_matrices", mat_fname), "rb") as mfile:
         big_mat = mmread(mfile)
     mat = big_mat.tocoo()
     print "Mat Shape: ", mat.shape
     l = 200
     alpha = 0.2
-    batch_size = 500
-    randomized=False
-    num_processes=2
+    batch_size = 5000
+    randomized=True
+    num_processes=8
     print "Starting with %d processes" % num_processes
     start_time = time.time()
     sketch = sparse_parallel_bpfd_sketch(mat, l, alpha, batch_size, 
@@ -229,4 +251,5 @@ def sketch_ESOC():
                         b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
                                     batch_size, alpha, num_processes, sketching_time))
 if __name__ == "__main__":
-    sketch_w2vec()
+    #sketch_w2vec()
+    sketch_sparse()

@@ -28,3 +28,5 @@ Mat: ESOC.mtx, Rand: False, l: 200,
                         b: 500, alpha: 0.200000, Processes: 2, Time: 3738.223573
 Mat: ../../data/GoogleNews-vectors-negative300.bin, Rand: True, l: 250, 
                         b: 5000, alpha: 0.200000, Processes: 8, Time: 64.664413
+Mat: c-big.mtx, Rand: True, l: 200, 
+                        b: 1000, alpha: 0.200000, Processes: 8, Time: 772.042099

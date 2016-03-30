@@ -541,6 +541,7 @@ class SparseBatchPFDSketch(BatchPFDSketch):
 
     # why does this not work? 
     def _sparse_rand_sketch(self, mat_b):        
+        print "In sparse rand sketch"
         mat_u, vec_sigma, mat_vt = rand_svd(mat_b, self.l, raw=True)
         squared_sv_center = vec_sigma[self.del_ind] ** 2
         sigma_tilde = list(vec_sigma[:self.alpha_ind]) + [(0.0 if d < 0.0 else math.sqrt(d)) for d in (vec_sigma ** 2 - squared_sv_center)[self.alpha_ind:]]
