@@ -21,3 +21,109 @@ NameError: global name 'SUPPORTED_SKETCHES' is not defined
 Mat Shape:  (345241, 345241)
 Starting with 16 processes
 Calling Sparse parallel
+Mat Shape:  (345241, 345241)
+Starting with 16 processes
+Calling Sparse parallel
+Testing  5
+Actually initing object
+using sparse sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+Actually initing object
+using sparse sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+Actually initing object
+using sparse sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+Actually initing object
+using sparse sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+About to construct the arguments
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21586, 345241)
+Merging sketches
+Testing  10
+Mat Shape:  (345241, 345241)
+Starting with 16 processes
+Calling Sparse parallel
+Testing  15
+Testing  20
+About to construct the arguments
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21577, 345241)
+Submatrix shape:  (21586, 345241)
+Traceback (most recent call last):
+  File "parallel_sketch.py", line 255, in <module>
+    sketch_sparse()
+  File "parallel_sketch.py", line 247, in sketch_sparse
+    randomized=randomized, num_processes=num_processes)
+  File "parallel_sketch.py", line 105, in sparse_parallel_bpfd_sketch
+    sketches = pool.map(_sparse_sketch_func, args)
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 251, in map
+    return self.map_async(func, iterable, chunksize).get()
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 558, in get
+    raise self._value
+multiprocessing.pool.MaybeEncodingError: Error sending result: '[matrix([[  3.76964059e-15,   8.96588401e-15,  -1.18744758e-15, ...,
+           0.00000000e+00,   0.00000000e+00,   0.00000000e+00],
+        [  2.90128142e-15,   7.00581765e-15,  -1.16916688e-15, ...,
+           0.00000000e+00,   0.00000000e+00,   0.00000000e+00],
+        [ -1.28685307e-15,  -2.33188178e-14,   1.81786589e-15, ...,
+           0.00000000e+00,   0.00000000e+00,   0.00000000e+00],
+        ..., 
+        [  4.33663956e-16,   1.38151951e-15,   2.09152289e-17, ...,
+           0.00000000e+00,   0.00000000e+00,   0.00000000e+00],
+        [  1.15608242e-17,   2.71621781e-16,  -4.91021733e-17, ...,
+           0.00000000e+00,   0.00000000e+00,   0.00000000e+00],
+        [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00, ...,
+           0.00000000e+00,   0.00000000e+00,   0.00000000e+00]])]'. Reason: 'SystemError('NULL result without error in PyObject_Call',)'
+Actually initing object
+using sparse sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+In sparse rand sketch
+Mat Shape:  (327062, 37830)
+Starting with 16 processes
+Calling Sparse parallel

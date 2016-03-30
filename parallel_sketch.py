@@ -230,13 +230,13 @@ def sketch_c():
                                     batch_size, alpha, num_processes, sketching_time))
 
 def sketch_sparse():
-    #mat_fname = 'ESOC.mtx'
-    mat_fname = 'c-big.mtx' 
+    mat_fname = 'ESOC.mtx'
+    #mat_fname = 'c-big.mtx' 
     with open(os.path.join("test_matrices", mat_fname), "rb") as mfile:
         big_mat = mmread(mfile)
     mat = big_mat.tocoo()
     print "Mat Shape: ", mat.shape
-    l = 200
+    l = 2000
     alpha = 0.2
     batch_size = 5000
     randomized=True
