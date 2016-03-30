@@ -581,7 +581,7 @@ class SparseBatchPFDSketch(BatchPFDSketch):
         if self.sketch is not None:
             return self.sketch
         # basically, want to init an empty csr matrix 
-        if self.randomized and (self.b_size > 100 * self.l):
+        if self.randomized and (self.m > 100 * self.l):
             # lets use the sparse version of randomized sketch here 
             return self.compute_sparse_sketch()
         else:

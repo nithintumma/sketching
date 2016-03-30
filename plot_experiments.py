@@ -265,6 +265,17 @@ def plot_scalability(results_fname="experiments/parallel_ESOC/ESOC/results.p"):
     plt.show()
     pass
 
+def plot_kmeans(results_fname='experiments/kmeans/w2vec/results.p'):
+    # what does the plot look like
+    fig = plt.figure()
+    with open(results_fname, "rb") as f:
+        results = pickle.load(f)
+    clusters = [5, 10, 15, 20]
+    opt_data = []
+    sketch_data = []
+    
+
+
 # SAMPLE FILENAMES
 #fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
 #fname = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
