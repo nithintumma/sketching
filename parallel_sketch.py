@@ -1,7 +1,7 @@
 import time 
 import os
 from multiprocessing import Pool, current_process
-
+from gensim import models
 import numpy as np
 from scipy.sparse import coo_matrix
 from scipy.io import mmread
@@ -185,8 +185,30 @@ def run_code():
                                     batch_size, alpha, num_processes, sketching_time))
     print calculateError(mat, sketch)
 
-# how do I test this? do I have an example file laying around somewhere? s
-if __name__ == "__main__":
+# I need to sketch word2vec then save the sketch to a file
+def sketch_w2vec():
+    print "Loading model"
+    path = "../../data/GoogleNews-vectors-negative300.bin"
+    model = models.Word2Vec.load_word2vec_format(path, binary=True)
+    mat = model.syn0
+    l = 250
+    alpha = 0.2
+    batch_size = 5000
+    randomized = True
+    num_processes = 8
+    start_time = time.time()
+    sketch = parallel_bpfd_sketch(mat, l, alpha, batch_size,
+                                    randomized=randomized, num_processes=num_processes)
+    sketching_time = time.time() - start_time
+    print "Writing sketch"
+    write_matrix(sketch, "sketches/w2vec_%d.txt"%l)
+    with open("experiments/parallel_results.txt", "a") as f:
+            f.write("""Mat: %s, Rand: %r, l: %d, 
+                        b: %d, alpha: %f, Processes: %d, Time: %f\n""" %
+                                    (path, randomized, l, batch_size, 
+                                    alpha, num_processes, sketching_time))
+
+def sketch_ESOC():
     mat_fname = 'ESOC.mtx'
     with open(os.path.join("test_matrices", mat_fname), "rb") as mfile:
         big_mat = mmread(mfile)
@@ -206,3 +228,5 @@ if __name__ == "__main__":
             f.write("""Mat: %s, Rand: %r, l: %d, 
                         b: %d, alpha: %f, Processes: %d, Time: %f\n""" %(mat_fname, randomized, l, 
                                     batch_size, alpha, num_processes, sketching_time))
+if __name__ == "__main__":
+    sketch_w2vec()
