@@ -534,6 +534,33 @@ class ParallelPFDSketchExperiment(Experiment):
     def plot_results(self):
         raise Exception("Not Implemented")
 
+from cluster import train_kmeans, kmeans_objective
+def kmeans_experiment(on_orig=True):
+    path = "../data/GoogleNews-vectors-negative300.bin"
+    wmodel = models.Word2Vec.load_word2vec_format(path, binary=True)
+    mat = wmodel.syn0
+    sketch = load_matrix("sketches/")
+    clusters = [5, 10, 15, 20]
+    num_processes = 8
+    results = {'opt': {}, 'sketch': {}}
+    for k in clusters:
+        print "Testing ", k
+        start_time = time.time()
+        cost, cluster_centers = train_kmeans(sketch, k, num_processes=num_processes)
+        train_time = time.time() - start_time
+        test_cost = kmeans_objective(mat, cluster_centers, labels=None)
+        results['sketch'][k] = {'time': train_time, 'cost': test_cost}
+        if on_orig:
+            start_time = time.time()
+            cost, cluster_centers = train_kmeans(mat, k, num_processes=num_processes)
+            train_time = time.time() - start_time
+            results['opt'][k] = {'time': train_time, 'cost': test_cost}
+    if on_orig:
+        with open('experiments/kmeans/w2vec/results.p', "wb") as f:
+            pickle.dump(results, f)
+    else:
+        with open('experiments/kmeans/w2vec/results_sketch.p', "wb") as f:
+            pickle.dump(results, f)
 
 def test_batch_exp():
     mat_fname = "med_svd_mat.txt"
@@ -606,4 +633,4 @@ def test_par_exp():
     exp.write_results()
 
 if __name__ == "__main__":
-    test_par_exp()
+    kmeans_experiment()
