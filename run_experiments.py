@@ -58,7 +58,10 @@ def plot_sketches_results(exp_name, mat_fname, results_fname, sketch_types={}):
 def compare_sketches_experiment(mat_fname=MATRIX, l_low=100, l_high=400, plot=True):
     print "Sketching Experiment"
     # compare all sketches 
-    sketch_types = {'jlt': None, 'cw':None, 'fd': None, 'pfd': {'alpha': 0.2}, 'batch-pfd': {'batch_size': 400, 'alpha': 0.2}}
+    sketch_types = {'jlt': None, 'cw':None, 'fd': None, 
+                    'pfd': {'alpha': 0.2}, 
+                    'batch-pfd': {'batch_size': 400, 'alpha': 0.2}, 
+                    'rand-batch-pfd': {'batch_size': 1000, 'alpha': 0.2}}
     ls = np.arange(l_low, l_high+100, (l_high - l_low)/15)
     exp_name = "sketch_exp_" + os.path.splitext(mat_fname)[0]
     sketch_exp = SketchExperiment(exp_name, mat_fname, ls, sketch_types=sketch_types)
@@ -165,7 +168,6 @@ def completed_experiments():
                                 alphas=alphas, 
                                 fast=fast,
                                 double=double)
-if __name__ == "__main__":
     mat_fname = med_cifar_mat_fname
     l1 = 200
     l2 = 600
@@ -173,3 +175,7 @@ if __name__ == "__main__":
     batch_size = 600
     dynamic_experiment(mat_fname=mat_fname, l1=l1, l2=l2, 
                         batch_size=batch_size, plot=False)
+
+if __name__ == "__main__":
+    mat_fname = cifar_mat_fname
+    compare_sketches_experiment(mat_fname=MATRIX, l_low=100, l_high=400, plot=False)

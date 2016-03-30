@@ -205,9 +205,9 @@ class AlphaSketchExperiment(Experiment):
             self.run_experiment()
         super(AlphaSketchExperiment, self).plot_results(err, proj_err, time, save)
 
+SUPPORTED_SKETCHES = set(['jlt', 'cw', 'fd', 'pfd', 
+                            'batch-pfd','rand-batch-pfd'])
 class SketchExperiment(Experiment):
-    SUPPORTED_SKETCHES = set(['jlt', 'cw', 'fd', 'pfd', 'batch-pfd'])
-    #def __init__(self, exp_name, mat_fname, dependent_vars, dependent_var_name):
     def __init__(self, exp_name, mat_fname, sketch_sizes, sketch_types=list(SUPPORTED_SKETCHES)):
         """
         sketch_types should be a dict, keys are SUPPORTED SKETCHES and vals are params for them 
@@ -226,6 +226,7 @@ class SketchExperiment(Experiment):
         for sketch_t in self.sketch_types.keys():
             print "Testing ", sketch_t
             _sketch_class_args = []
+            _sketch_class_kwargs = {}
             if sketch_t == 'jlt':
                 _sketch_class = JLTSketch
             elif sketch_t == 'cw':
@@ -238,16 +239,24 @@ class SketchExperiment(Experiment):
             elif sketch_t == 'batch-pfd':
                 _sketch_class = BatchPFDSketch
                 # batch_size and lpah
-                _sketch_class_args = [self.sketch_types[sketch_t]['batch_size'], self.sketch_types[sketch_t]['alpha']]
+                _sketch_class_args = [self.sketch_types[sketch_t]['batch_size'], 
+                                        self.sketch_types[sketch_t]['alpha']]
+            elif sketch_t == 'rand-batch-pfd':
+                _sketch_class = BatchPFDSketch
+                _sketch_class_args = [self.sketch_types[sketch_t]['batch_size'], 
+                                        self.sketch_types[sketch_t]['alpha']]
+                _sketch_class_kwargs['randomized'] = True
             # now compute the sketches for each of the sketch sizes 
             self.results[sketch_t] = {}
             for l in self.sketch_sizes: 
-                sketch_obj = _sketch_class(self.mat, l, *_sketch_class_args)
+                sketch_obj = _sketch_class(self.mat, l, 
+                                *_sketch_class_args, **_sketch_class_kwargs)
                 sketch_obj.compute_sketch()
                 self.results[sketch_t][l] = {"time": sketch_obj.sketching_time, 
                                              "err": sketch_obj.sketch_err(),
                                              "proj_err": sketch_obj.sketch_projection_err()}
                 sketch_objs.append(sketch_obj)
+
         self.sketch_objs = sketch_objs
         self.computed_results = True
         return self.results

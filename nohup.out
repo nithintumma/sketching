@@ -1,0 +1,20 @@
+Dynamic Experiment
+Testing:  1
+Testing:  5001
+Testing:  10001
+Testing:  15001
+Testing:  20001
+Testing:  25001
+Testing:  30001
+Testing:  35001
+Testing:  40001
+Testing:  45001
+Sketching Experiment
+Traceback (most recent call last):
+  File "run_experiments.py", line 181, in <module>
+    compare_sketches_experiment(mat_fname=MATRIX, l_low=100, l_high=400, plot=False)
+  File "run_experiments.py", line 67, in compare_sketches_experiment
+    sketch_exp = SketchExperiment(exp_name, mat_fname, ls, sketch_types=sketch_types)
+  File "/home/ntumma/code/sketching/experiments.py", line 217, in __init__
+    assert(sketch_t in SUPPORTED_SKETCHES) 
+NameError: global name 'SUPPORTED_SKETCHES' is not defined
