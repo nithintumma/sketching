@@ -102,14 +102,14 @@ def test_word2vec():
     with open(path, "rb") as f:
         print "Sucess"
     w_model = models.Word2Vec.load_word2vec_format(path, binary=True)
-    write_matrix("test_matices/w2vec.txt", w_model.syn0)
-    return w_model.syn0
+    ##write_matrix("test_matices/w2vec.txt", w_model.syn0)
+    return w_model
 
 def load_word2vec(fname, write=True):
     w_model = models.Word2Vec.load_word2vec_format(fname, binary=False)
     if write:
         write_matrix("test_matices/w2vec.txt", w_model.syn0)
-    return w_models.syn0
+    return w_model
 
 def test_sparse_rand():
     A = sps.rand(10000, 30000, 0.001)
