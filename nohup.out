@@ -127,3 +127,81 @@ In sparse rand sketch
 Mat Shape:  (327062, 37830)
 Starting with 16 processes
 Calling Sparse parallel
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+Actually initing object
+sketching  6999
+sketching  11999
+sketching  16999
+About to construct the arguments
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20441, 37830)
+Submatrix shape:  (20447, 37830)
+Merging sketches
