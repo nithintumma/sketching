@@ -35,7 +35,17 @@ def train_kmeans(mat, k, num_processes=1):
         model.fit(mat)
 	# get the objective function and the labels! 
 	cost = kmeans_objective(mat, model.cluster_centers_, model.labels_)
-	return cost, model.cluster_centers_
+	return cost, model.cluster_centers_, model.labels_
+
+def compute_cost_labels(mat, labels, k=None):
+	if k is None:
+		k = len(np.unique(labels))
+	cluster_centers = []
+	for i in range(k):
+		inds = np.where(labels == k)
+		cluster_center = np.mean(mat[inds], axis=0)
+		cluster_centers.append(cluster_center)
+	return kmeans_objective(mat, cluster_centers, labels)
 
 if __name__ == "__main__":
 	pass 
