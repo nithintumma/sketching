@@ -34,3 +34,5 @@ Mat: c-big.mtx, Rand: True, l: 200,
                         b: 5000, alpha: 0.200000, Processes: 16, Time: 1649.739859
 Mat: ESOC.mtx, Rand: True, l: 2000, 
                         b: 5000, alpha: 0.200000, Processes: 16, Time: 7549.269821
+Mat: large_cifar, Rand: True, l: 250, 
+                        b: 5000, alpha: 0.200000, Processes: 8, Time: 53.430385

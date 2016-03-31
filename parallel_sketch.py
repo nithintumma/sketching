@@ -185,6 +185,26 @@ def run_code():
                                     batch_size, alpha, num_processes, sketching_time))
     print calculateError(mat, sketch)
 
+def sketch_cifar():
+    print "Loading model"
+    mat = load_matrix("large_cifar_data")
+    l = 250
+    alpha = 0.2
+    batch_size = 5000
+    randomized = True
+    num_processes = 8
+    start_time = time.time()
+    sketch = parallel_bpfd_sketch(mat, l, alpha, batch_size,
+                                    randomized=randomized, num_processes=num_processes)
+    sketching_time = time.time() - start_time
+    #print "Writing sketch"
+    #write_matrix(sketch, "sketches/w2vec_%d.txt"%l)
+    with open("experiments/parallel_results.txt", "a") as f:
+            f.write("""Mat: %s, Rand: %r, l: %d, 
+                        b: %d, alpha: %f, Processes: %d, Time: %f\n""" %
+                                    ("large_cifar", randomized, l, batch_size, 
+                                    alpha, num_processes, sketching_time))
+
 # I need to sketch word2vec then save the sketch to a file
 def sketch_w2vec():
     print "Loading model"
@@ -252,4 +272,5 @@ def sketch_sparse():
                                     batch_size, alpha, num_processes, sketching_time))
 if __name__ == "__main__":
     #sketch_w2vec()
-    sketch_sparse()
+    #sketch_sparse()
+    sketch_cifar()
