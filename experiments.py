@@ -550,8 +550,11 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     mat = load_matrix('data_batch_1')
     # sketch the transpose 
     mat = mat.T
-    sketch_o = BatchPFDSketch(mat, 200, 200, 0.2, randomized=False)
-    sketch = sketch_o.compute_sketch().T
+    sketch_sizes = [50, 100, 200]
+    sketch_objs = [BatchPFDSketch(mat, l, l, 0.2, randomized=False) for l in sketch_sizes]
+    sketches = []
+    for sk in sketch_objs:
+        sketches.append(sk.compute_sketch().T)
     mat = mat.T
     print sketch.shape
     print mat.shape
@@ -562,12 +565,14 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     for k in clusters:
         print "Testing ", k
         if on_sketch:
-            start_time = time.time()
-            cost, cluster_centers, labels = train_kmeans(sketch, k, 
-                                                num_processes=num_processes)
-            train_time = time.time() - start_time
-            test_cost = compute_cost_labels(mat, labels, k)
-            results['sketch'][k] = {'time': train_time, 'cost': test_cost}
+            for sketch, l in zip(sketches, sketch_sizes):
+                results['sketch'][l] ={} 
+                start_time = time.time()
+                cost, cluster_centers, labels = train_kmeans(sketch, k, 
+                                                    num_processes=num_processes)
+                train_time = time.time() - start_time
+                test_cost = compute_cost_labels(mat, labels, k)
+                results['sketch'][l][k] = {'time': train_time, 'cost': test_cost}
         if on_orig:
             start_time = time.time()
             cost, cluster_centers, labels = train_kmeans(mat, k, num_processes=num_processes)
@@ -666,5 +671,5 @@ def test_par_exp():
 if __name__ == "__main__":
     #kmeans_experiment(on_sketch=True, on_orig=True)
     #test_rand_exp()
-    kmeans_experiment(on_sketch=True, on_orig=True)
+    kmeans_experiment(on_sketch=True, on_orig=False)
     #test_rand_exp()
