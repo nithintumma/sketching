@@ -6,6 +6,61 @@ from experiments import DynamicSketchExperiment
 
 FIG_SIZE = (7, 15)
 
+def plot_lbounds_err(results_fname):
+    with open(results_fname, "rb") as f:
+        results = pickle.load(f)
+    fig, ax_arr = plt.subplots(2, figsize=(8, 10))
+    # l hat bounds
+    changepoints = np.sort(filter(lambda x: isinstance(x, (int, long)), results.keys()))
+    xlims = [0, changepoints[-1]]
+    l1 = results['l1_size']
+    l2 = results['l2_size']
+    l_bounds = [results[t]['l_bound'] for t in changepoints]
+    errs = [0.000014, 0.000021, 0.000029, 0.000038, 0.000046, 0.000054, 0.000063, 0.000071, 0.00008, 0.000088]
+    ax_arr[0].plot(changepoints, errs, '-o', label='cov err')
+    ax_arr[0].hlines(0.00009, xlims[0], xlims[1], linestyle='--', label='l1 bound')
+    ax_arr[0].hlines(0.000014, xlims[0], xlims[1], linestyle='-', label='l2 bound')
+    ax_arr[0].set_ylabel("Covariance Error")
+    #ax_arr[0].set_xlabel("Changepoint")
+    ax_arr[0].set_xlim(xlims)
+
+    ax_arr[1].plot(changepoints, l_bounds, '-o', label='l bound')
+    ax_arr[1].hlines(l1, xlims[0], xlims[1], linestyle='--', label='l1')
+    ax_arr[1].hlines(l2, xlims[0], xlims[1], linestyle='-', label='l2')
+    ax_arr[1].set_ylabel("Bound on Realized L")
+    ax_arr[1].set_xlabel("Changepoint")
+    ax_arr[1].set_xlim(xlims)
+    ax_arr[1].set_ylim((100, 700))
+
+    for ax in ax_arr:
+        ax.grid()
+        ax.legend(loc='best')
+    plt.xlim(xlims)
+    
+    fig.savefig(os.path.join(results['exp_dir'], "new_results.png"))
+
+
+def plot_lbounds(results_fname):
+    with open(results_fname, "rb") as f:
+        results = pickle.load(f)
+    fig = plt.figure()
+    # l hat bounds
+    changepoints = np.sort(filter(lambda x: isinstance(x, (int, long)), results.keys()))
+    xlims = [0, changepoints[-1]]
+    l1 = results['l1_size']
+    l2 = results['l2_size']
+    l_bounds = [results[t]['l_bound'] for t in changepoints]
+    plt.plot(changepoints, l_bounds, '-o', label='l Bound')
+    plt.hlines(l1, xlims[0], xlims[1], linestyle='--', label='l1')
+    plt.hlines(l2, xlims[0], xlims[1], linestyle='-', label='l2')
+    plt.ylabel("Bound on Realized L")
+    plt.xlabel("Changepoint")
+    plt.xlim(xlims)
+    plt.ylim(max(l1/1.1, 0), l2 * 1.1)
+    plt.legend(loc='best')
+    plt.grid()
+    fig.savefig(os.path.join(results['exp_dir'], "l_results.png"))
+
 # changepoint vs 
 def plot_dynamic_sketch_experiment(results_fname, save=True):
     """
@@ -80,7 +135,6 @@ def plot_tweak_batched_experiment(results_fname, save=True):
     fig, ax_arr = plt.subplots(3, sharex=True, figsize=FIG_SIZE)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(-5,5))
 
-
     # plot runtimes
     batch_times = [results['batch'][a]['time'] for a in alphas]
     tweak_times = [results['tweak'][a]['time'] for a in alphas]
@@ -102,7 +156,7 @@ def plot_tweak_batched_experiment(results_fname, save=True):
     ax_arr[2].plot(alphas, tweak_proj_errs, '-x', label='PFD Proj Err')
     ax_arr[2].set_ylabel("Projection Error")
     ax_arr[2].legend(loc='best')
-
+    ax_arr[2].set_xlabel("Alpha")
     plt.tight_layout()
     for ax in ax_arr:
         ax.grid()
@@ -114,6 +168,37 @@ def plot_tweak_batched_experiment(results_fname, save=True):
         fig.savefig(os.path.join(results['exp_dir'], "results.png"))
     else:
         fig.show()
+
+def plot_error_bpfd():
+    alphas = np.arange(0.1, 1.1, 0.1)
+    print "Alphas ", alphas
+    xlims = [0, alphas[-1] + 0.1]
+    fig, ax_arr = plt.subplots(2, sharex=True, figsize=(7, 10))
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(-5,5))
+    # from 
+    batch_cov_errs = [0.000175, 0.000181, 0.000186, 0.000188, 0.000191, 0.000194, 0.000196, 0.000197, 0.000199, 0.000210]
+    batch_proj_errs = [1.415417, 1.436476, 1.454169, 1.469601, 1.483738, 1.496000, 1.507494, 1.517669, 1.527717, 1.536952]
+    ax_arr[0].plot(alphas, batch_cov_errs, '-o', label='BPFD Cov Err')
+    ax_arr[1].plot(alphas, batch_proj_errs, '-o', label='BPFD Proj Err')
+    ax_arr[0].set_ylabel("Covariance Error")
+    ax_arr[1].set_ylabel("Projection Error")
+    ax_arr[1].set_xlabel("Alpha")
+    plt.tight_layout()
+    for ax in ax_arr:
+        ax.grid()
+    fig.savefig('experiments/bpfd_err.png')
+
+def plot_rand_scale():
+    with open("experiments/rand_scale/results2.p", "rb") as f:
+        results = pickle.load(f)
+    sketch_sizes = np.sort(results.keys())
+    fig = plt.figure()
+    times = [results[l] for l in sketch_sizes]
+    plt.plot(sketch_sizes, times, '-o')
+    plt.xlabel("Sketch Size")
+    plt.ylabel("Runtime (s)")
+    plt.grid()
+    fig.savefig('experiments/rand_scale/rand_scale2.png')
 
 # do we also want to create a function to plot alpha experiment? 
 # we have the data here on alpha choice tho! cause we also plot errors 
@@ -127,31 +212,32 @@ def plot_batched_sketch_experiment(results_fname, save=True):
     # plot runtimes
     svd_times = [results['svd'][b]['time'] for b in batch_sizes]
     rand_times = [results['rand'][b]['time'] for b in batch_sizes]
-    ax_arr[0].plot(batch_sizes, svd_times, '-o', label='Deterministic SVD Runtime')
-    ax_arr[0].plot(batch_sizes, rand_times, '-x', label='Randomized SVD Runtime')
+    ax_arr[0].plot(batch_sizes, svd_times, '-o', label='BPFD')
+    ax_arr[0].plot(batch_sizes, rand_times, '-x', label='RandBPFD')
     ax_arr[0].set_ylabel("Runtime (s)")
     ax_arr[0].legend(loc='best')
     # plot covariance errors
     svd_cov_errs = [results['svd'][b]['err'] for b in batch_sizes]
     rand_cov_errs = [results['rand'][b]['err'] for b in batch_sizes]
-    ax_arr[1].plot(batch_sizes, svd_cov_errs, '-o', label='Deterministic SVD Cov Err')
-    ax_arr[1].plot(batch_sizes, rand_cov_errs, '-x', label='Randomized SVD Cov Err')
+    ax_arr[1].plot(batch_sizes, svd_cov_errs, '-o', label='BPFD')
+    ax_arr[1].plot(batch_sizes, rand_cov_errs, '-x', label='RandBPFD')
     ax_arr[1].set_ylabel("Covariance Reconstruction Error")
     ax_arr[1].legend(loc='best')
     # plot projection errors
     svd_proj_errs = [results['svd'][b]['proj_err'] for b in batch_sizes]
     rand_proj_errs = [results['rand'][b]['proj_err'] for b in batch_sizes]
-    ax_arr[2].plot(batch_sizes, svd_proj_errs, '-o', label='Deterministic SVD Proj Err')
-    ax_arr[2].plot(batch_sizes, rand_proj_errs, '-x', label='Randomized SVD Proj Err')
+    ax_arr[2].plot(batch_sizes, svd_proj_errs, '-o', label='BPFD')
+    ax_arr[2].plot(batch_sizes, rand_proj_errs, '-x', label='RandBPFD')
     ax_arr[2].set_ylabel("Projection Error")
     ax_arr[2].legend(loc='best')
     ax_arr[2].set_xlabel("Batch Size")
+    #ax_arr[2].set_scale("log")
 
     # format plot 
     plt.tight_layout()
     for ax in ax_arr:
         ax.grid()
-        ax.set_yscale('log')
+        #ax.set_yscale('log')
         ax.set_xlim(xlims)
     if save:
         fig.savefig(os.path.join(results['exp_dir'], "results.png"))
@@ -265,11 +351,14 @@ def plot_scalability(results_fname="experiments/parallel_ESOC/ESOC/results.p"):
     plt.show()
 
 
-def plot_kmeans(results_fname='experiments/kmeans/w2vec/results.p'):
+def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/large_sketch_results.p', mat_results_fname='experiments/kmeans/cifar/mat_results.p'):
     # what does the plot look like
     fig = plt.figure()
-    with open(results_fname, "rb") as f:
-        results = pickle.load(f)
+    results = {}
+    with open(sketch_results_fname, "rb") as f:
+        results['sketch'] = pickle.load(f)['sketch']
+    with open(mat_results_fname, "rb") as f:
+        results['opt'] = pickle.load(f)['opt']
     clusters = [5, 10, 15, 20]
     opt_data = []
     sketch_data = []
@@ -282,17 +371,19 @@ def plot_kmeans(results_fname='experiments/kmeans/w2vec/results.p'):
     print np.array(sketch_times) + 64
     print sketch_costs
     print opt_costs
-    plt.plot(clusters, np.array(sketch_costs)/np.array(opt_costs), '-o', label='sketch')
-    plt.yscale('log')
+    plt.plot(clusters, np.array(sketch_times)/np.array(opt_times), '-o')
+    #plt.plot(clusters, np.array(sketch_costs), '-o', label='sketch')
+    #plt.yscale('log')
     #plt.plot(clusters, opt_costs, '-o', label="opt")
-
     # what do we do for times? 
     plt.xlabel("Clusters")
-    plt.ylabel("K-Means Cost")
+    plt.ylabel("K-Means Relative Cost (Sketch/OPT)")
     plt.legend(loc='best')
-    fig_path = os.path.split(results_fname)[0]
-    fig.savefig(os.path.join(fig_path, "results.png"))
-    plt.show()
+    fig_path = os.path.split(sketch_results_fname)[0]
+    #plt.ylim((6, 9))
+    plt.grid()
+    fig.savefig(os.path.join(fig_path, "large_results.png"))
+
 
 # SAMPLE FILENAMES
 #fname = "experiments/tweak_batch_exp_small_data_batch_1/small_data_batch_1/results.p"
@@ -307,5 +398,11 @@ def plot_kmeans(results_fname='experiments/kmeans/w2vec/results.p'):
 if __name__ == "__main__":
     #plot_scalability()
     #path = "experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p"
-    #plot_dynamic_sketch_experiment(path, save=True)
+    #path = "experiments/tweak_batch_exp_data_batch_1/data_batch_1/results.p"
+    #plot_tweak_batched_experiment(path)
     plot_kmeans()
+    #plot_comparison_experiment("experiments/sketch_exp_data_batch_1/data_batch_1/results.p")
+    #plot_dynamic_sketch_experiment("experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p")
+    #plot_batched_sketch_experiment("experiments/rand_batch_exp_cifar_data/cifar_data/results.p")
+    #plot_rand_scale()
+    #plot_lbounds_err("experiments/dynamic_exp_cifar_data_200_600/cifar_data/results.p")
