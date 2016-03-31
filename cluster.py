@@ -42,7 +42,7 @@ def compute_cost_labels(mat, labels, k=None):
 		k = len(np.unique(labels))
 	cluster_centers = []
 	for i in range(k):
-		inds = np.where(labels == k)
+		inds = np.where(labels == i)
 		cluster_center = np.mean(mat[inds], axis=0)
 		cluster_centers.append(cluster_center)
 	return kmeans_objective(mat, cluster_centers, labels)
