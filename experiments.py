@@ -624,14 +624,24 @@ def test_dyn_exp():
     dyn_exp.write_results()
 
 def test_rand_exp():
-    mat_fname = "med_svd_mat.txt"
-    l = 10
+    mat_fname = "data_batch_1.txt"
+    l = 200
+    sketch_sizes = [100, 200, 300, 400, 500]
     batch_sizes =[5, 10, 20]
     alpha = 0.2
     exp_name = 'test_rand_bpfd_experiment'
-    exp = BatchRandomPFDSketchExperiment(exp_name, mat_fname, l, alpha, batch_sizes, runs=3)
-    exp.run_experiment()
-    exp.write_results()
+    mat = load_matrix(mat_fname)
+    results = {}
+    for l in sketch_sizes:
+        sk_o = BatchPFDSketch(mat, l, 500, alpha, randomized=True)
+        sk_o.compute_sketch()
+        results[l] = sk_o.sketching_time
+    with open("experiments/rand_scale/results.p", "wb") as f:
+        pickle.dump(results, f) 
+    print "Done"
+    #exp = BatchRandomPFDSketchExperiment(exp_name, mat_fname, l, alpha, batch_sizes, runs=3)
+    #exp.run_experiment()
+    #exp.write_results()
 
 def test_par_exp():
     mat_fname = "med_svd_mat.txt"
@@ -644,5 +654,7 @@ def test_par_exp():
     exp.run_experiment()
     exp.write_results()
 
+
 if __name__ == "__main__":
-    kmeans_experiment(on_sketch=False, on_orig=True)
+    #kmeans_experiment(on_sketch=False, on_orig=True)
+    test_rand_exp()
