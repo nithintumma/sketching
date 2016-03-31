@@ -554,6 +554,7 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     sketch = sketch_o.compute_sketch().T
     mat = mat.T
     print sketch.shape
+    print mat.shape
     #sketch = load_matrix("sketches/w2vec_250.txt")
     clusters = [5, 10, 15, 20]
     num_processes = 8
@@ -665,5 +666,5 @@ def test_par_exp():
 if __name__ == "__main__":
     #kmeans_experiment(on_sketch=True, on_orig=True)
     #test_rand_exp()
-    kmeans_experiment(on_sketch=True, on_orig=False)
+    kmeans_experiment(on_sketch=True, on_orig=True)
     #test_rand_exp()
