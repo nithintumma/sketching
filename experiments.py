@@ -545,10 +545,13 @@ class ParallelPFDSketchExperiment(Experiment):
 
 from cluster import train_kmeans, kmeans_objective
 def kmeans_experiment(on_sketch=True, on_orig=True):
-    path = "../../data/GoogleNews-vectors-negative300.bin"
-    wmodel = models.Word2Vec.load_word2vec_format(path, binary=True)
-    mat = wmodel.syn0
-    sketch = load_matrix("sketches/w2vec_250.txt")
+    #path = "../../data/GoogleNews-vectors-negative300.bin"
+    #wmodel = models.Word2Vec.load_word2vec_format(path, binary=True)
+    mat = load_matrix('data_batch_1')
+    sketch_o = BatchPFDSketch(mat, 250, 500, 0.2, randomized=False)
+    sketch = sketch_o.compute_sketch()
+    print sketch.shape
+    #sketch = load_matrix("sketches/w2vec_250.txt")
     clusters = [5, 10, 15, 20]
     num_processes = 8
     results = {'opt': {}, 'sketch': {}}
@@ -567,10 +570,10 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
             train_time = time.time() - start_time
             results['opt'][k] = {'time': train_time, 'cost': cost}
     if on_orig:
-        with open('experiments/kmeans/w2vec/mat_results.p', "wb") as f:
+        with open('experiments/kmeans/cifar/mat_results.p', "wb") as f:
             pickle.dump(results, f)
     if on_sketch:
-        with open('experiments/kmeans/w2vec/sketch_results.p', "wb") as f:
+        with open('experiments/kmeans/cifar/sketch_results.p', "wb") as f:
             pickle.dump(results, f)
         
 
@@ -656,5 +659,5 @@ def test_par_exp():
 
 
 if __name__ == "__main__":
-    #kmeans_experiment(on_sketch=False, on_orig=True)
-    test_rand_exp()
+    kmeans_experiment(on_sketch=True, on_orig=True)
+    #test_rand_exp()
