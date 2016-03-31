@@ -556,8 +556,8 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     for sk in sketch_objs:
         sketches.append(sk.compute_sketch().T)
     mat = mat.T
-    print sketch.shape
-    print mat.shape
+    #print sketche.shape
+    print "Mat: ", mat.shape
     #sketch = load_matrix("sketches/w2vec_250.txt")
     clusters = [5, 10, 15, 20]
     num_processes = 8
