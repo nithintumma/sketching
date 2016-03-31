@@ -562,11 +562,13 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     clusters = [5, 10, 15, 20]
     num_processes = 8
     results = {'opt': {}, 'sketch': {}}
+    for l in sketch_sizes:
+        results['sketch'][l] = {}
+
     for k in clusters:
         print "Testing ", k
         if on_sketch:
             for sketch, l in zip(sketches, sketch_sizes):
-                results['sketch'][l] ={} 
                 start_time = time.time()
                 cost, cluster_centers, labels = train_kmeans(sketch, k, 
                                                     num_processes=num_processes)
@@ -578,6 +580,7 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
             cost, cluster_centers, labels = train_kmeans(mat, k, num_processes=num_processes)
             train_time = time.time() - start_time
             results['opt'][k] = {'time': train_time, 'cost': cost}
+    
     if on_orig:
         with open('experiments/kmeans/cifar/mat_results.p', "wb") as f:
             pickle.dump(results, f)

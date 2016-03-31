@@ -360,34 +360,26 @@ def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/sketch_results.p'
         results['sketch'] = pickle.load(f)['sketch']
     with open(mat_results_fname, "rb") as f:
         results['opt'] = pickle.load(f)['opt']
-    if plot_large:
-        with open("experiments/kmeans/cifar/large_sketch_results.p") as f:
-            large_results = pickle.load(f)['sketch']
-            print large_results.keys()
+    print results['sketch'][100].keys()
+
     clusters = [5, 10, 15, 20]
+    sketch_sizes = [50, 100, 200]
     opt_data = []
-    sketch_data = []
+    sketch_data = [[] for i in range(len(sketch_sizes))]
     large_sketch_data = []
     for k in clusters:
         opt_data.append((results['opt'][k]['time'], results['opt'][k]['cost']))
-        sketch_data.append((results['sketch'][k]['time'], results['sketch'][k]['cost']))
-        if plot_large:
-            large_sketch_data.append((large_results[k]['time'], large_results[k]['cost']))
+        for i in range(len(sketch_sizes)):
+            l = sketch_sizes[i]
+            sketch_data[i].append((results['sketch'][l][k]['time'], results['sketch'][l][k]['cost']))
     opt_times, opt_costs = zip(*opt_data)
-    sketch_times, sketch_costs = zip(*sketch_data)
-    if plot_large:
-        large_sketch_times, large_sketch_costs = zip(*large_sketch_data)
-    print opt_times 
-    print np.array(sketch_times) + 64
-    print sketch_costs
-    print opt_costs
-    plt.plot(clusters, np.array(sketch_costs)/np.array(opt_costs), '-o', label = 'l=200')
-    if plot_large:
-        plt.plot(clusters, np.array(large_sketch_costs)/np.array(opt_costs), '-o', label = 'l=1000')
-    #plt.plot(clusters, np.array(sketch_costs), '-o', label='sketch')
-    #plt.yscale('log')
-    #plt.plot(clusters, opt_costs, '-o', label="opt")
-    # what do we do for times? 
+    sketch_times, sketch_costs = []
+    for i in range(len(sketch_sizes)):
+        sketch_times_i, sketch_costs_i = zip(*sketch_data[i])
+        sketch_times.append(sketch_times_i)
+        sketch_costs.append(sketch_costs_i)
+    for i in range(len(sketch_sizes)):
+        plt.plot(clusters, np.array(sketch_costs[i])/np.array(opt_costs), '-o', label = 'l=%d'%sketch_sizes[i])
     plt.xlabel("Clusters")
     plt.ylabel("K-Means Approximation Error (OPT/Sketch)")
     plt.legend(loc='best')
