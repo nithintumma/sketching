@@ -548,8 +548,11 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     #path = "../../data/GoogleNews-vectors-negative300.bin"
     #wmodel = models.Word2Vec.load_word2vec_format(path, binary=True)
     mat = load_matrix('data_batch_1')
-    sketch_o = BatchPFDSketch(mat, 1000, 500, 0.2, randomized=False)
-    sketch = sketch_o.compute_sketch()
+    # sketch the transpose 
+    mat = mat.T
+    sketch_o = BatchPFDSketch(mat, 200, 200, 0.2, randomized=False)
+    sketch = sketch_o.compute_sketch().T
+    mat = mat.T
     print sketch.shape
     #sketch = load_matrix("sketches/w2vec_250.txt")
     clusters = [5, 10, 15, 20]
@@ -573,7 +576,7 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
         with open('experiments/kmeans/cifar/mat_results.p', "wb") as f:
             pickle.dump(results, f)
     if on_sketch:
-        with open('experiments/kmeans/cifar/large_sketch_results.p', "wb") as f:
+        with open('experiments/kmeans/cifar/sketch_results.p', "wb") as f:
             pickle.dump(results, f)
         
 

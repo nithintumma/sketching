@@ -351,7 +351,7 @@ def plot_scalability(results_fname="experiments/parallel_ESOC/ESOC/results.p"):
     plt.show()
 
 
-def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/large_sketch_results.p', mat_results_fname='experiments/kmeans/cifar/mat_results.p'):
+def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/sketch_results.p', mat_results_fname='experiments/kmeans/cifar/mat_results.p'):
     # what does the plot look like
     fig = plt.figure()
     results = {}
@@ -359,19 +359,26 @@ def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/large_sketch_resu
         results['sketch'] = pickle.load(f)['sketch']
     with open(mat_results_fname, "rb") as f:
         results['opt'] = pickle.load(f)['opt']
+    with open("experiments/kmeans/cifar/large_sketch_results.p") as f:
+        large_results = pickle.load(f)['sketch']
+        print large_results.keys()
     clusters = [5, 10, 15, 20]
     opt_data = []
     sketch_data = []
+    large_sketch_data = []
     for k in clusters:
         opt_data.append((results['opt'][k]['time'], results['opt'][k]['cost']))
         sketch_data.append((results['sketch'][k]['time'], results['sketch'][k]['cost']))
+        large_sketch_data.append((large_results[k]['time'], large_results[k]['cost']))
     opt_times, opt_costs = zip(*opt_data)
     sketch_times, sketch_costs = zip(*sketch_data)
+    large_sketch_times, large_sketch_costs = zip(*large_sketch_data)
     print opt_times 
     print np.array(sketch_times) + 64
     print sketch_costs
     print opt_costs
-    plt.plot(clusters, np.array(sketch_times)/np.array(opt_times), '-o')
+    plt.plot(clusters, np.array(sketch_costs)/np.array(opt_costs), '-o', label = 'l=200')
+    plt.plot(clusters, np.array(large_sketch_costs)/np.array(opt_costs), '-o', label = 'l=1000')
     #plt.plot(clusters, np.array(sketch_costs), '-o', label='sketch')
     #plt.yscale('log')
     #plt.plot(clusters, opt_costs, '-o', label="opt")
