@@ -543,7 +543,7 @@ class ParallelPFDSketchExperiment(Experiment):
     def plot_results(self):
         raise Exception("Not Implemented")
 
-from cluster import train_kmeans, kmeans_objective
+from cluster import train_kmeans, kmeans_objective, compute_cost_labels
 def kmeans_experiment(on_sketch=True, on_orig=True):
     #path = "../../data/GoogleNews-vectors-negative300.bin"
     #wmodel = models.Word2Vec.load_word2vec_format(path, binary=True)
@@ -562,14 +562,14 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
         print "Testing ", k
         if on_sketch:
             start_time = time.time()
-            cost, cluster_centers = train_kmeans(sketch, k, 
-                                        num_processes=num_processes)
+            cost, cluster_centers, labels = train_kmeans(sketch, k, 
+                                                num_processes=num_processes)
             train_time = time.time() - start_time
-            test_cost = kmeans_objective(mat, cluster_centers, labels=None)
+            test_cost = compute_cost_labels(mat, labels, k)
             results['sketch'][k] = {'time': train_time, 'cost': test_cost}
         if on_orig:
             start_time = time.time()
-            cost, cluster_centers = train_kmeans(mat, k, num_processes=num_processes)
+            cost, cluster_centers, labels = train_kmeans(mat, k, num_processes=num_processes)
             train_time = time.time() - start_time
             results['opt'][k] = {'time': train_time, 'cost': cost}
     if on_orig:
@@ -578,7 +578,7 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     if on_sketch:
         with open('experiments/kmeans/cifar/sketch_results.p', "wb") as f:
             pickle.dump(results, f)
-        
+
 
 def test_batch_exp():
     mat_fname = "med_svd_mat.txt"
