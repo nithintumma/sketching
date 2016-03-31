@@ -551,7 +551,7 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     # sketch the transpose 
     mat = mat.T
     sketch_sizes = [50, 100, 200]
-    sketch_objs = [BatchPFDSketch(mat, l, l, 0.2, randomized=False) for l in sketch_sizes]
+    sketch_objs = [BatchPFDSketch(mat, l, l, 0.2, randomized=True) for l in sketch_sizes]
     sketches = []
     for sk in sketch_objs:
         sketches.append(sk.compute_sketch().T)
