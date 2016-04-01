@@ -30,9 +30,12 @@ def cluster_kmeans(mat, k=None):
 	mat_centroids, mat_labels = kmeans(mat, k)
 	return mat_centroids, mat_labels 
 
-def train_kmeans(mat, k, num_processes=1):
-	model = KMeans(n_clusters=k, n_jobs=num_processes)
-        model.fit(mat)
+def train_kmeans(mat, k, init_centers=None, num_processes=1):
+	if init_centers is None:
+		model = KMeans(n_clusters=k, n_jobs=num_processes)
+	else:
+		model = Kmeans(n_clusters=k, init=init_centers, n_jobs=num_processes)
+    model.fit(mat)
 	# get the objective function and the labels! 
 	cost = kmeans_objective(mat, model.cluster_centers_, model.labels_)
 	return cost, model.cluster_centers_, model.labels_

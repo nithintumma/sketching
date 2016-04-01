@@ -362,7 +362,8 @@ def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/sketch_results.p'
         results['opt'] = pickle.load(f)['opt']
     print results['sketch'][100].keys()
 
-    clusters = [5, 10, 15, 20]
+    #clusters = [5, 10, 15, 20]
+    clusters = [10, 20, 30, 40]
     sketch_sizes = [50, 100, 200]
     opt_data = []
     sketch_data = [[] for i in range(len(sketch_sizes))]
@@ -373,7 +374,7 @@ def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/sketch_results.p'
             l = sketch_sizes[i]
             sketch_data[i].append((results['sketch'][l][k]['time'], results['sketch'][l][k]['cost']))
     opt_times, opt_costs = zip(*opt_data)
-    sketch_times, sketch_costs = []
+    sketch_times, sketch_costs = [], []
     for i in range(len(sketch_sizes)):
         sketch_times_i, sketch_costs_i = zip(*sketch_data[i])
         sketch_times.append(sketch_times_i)
