@@ -543,7 +543,7 @@ class ParallelPFDSketchExperiment(Experiment):
     def plot_results(self):
         raise Exception("Not Implemented")
 
-from cluster import train_kmeans, kmeans_objective, compute_cost_labels
+from cluster import train_kmeans, kmeans_objective, compute_cost_labels, compute_centers
 def kmeans_experiment(on_sketch=True, on_orig=True):
     #path = "../../data/GoogleNews-vectors-negative300.bin"
     #wmodel = models.Word2Vec.load_word2vec_format(path, binary=True)
@@ -582,9 +582,10 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
                 train_time = time.time() - start_time
                 test_cost = compute_cost_labels(mat, labels, k)
                 results['sketch'][l][k] = {'time': train_time, 'cost': test_cost}
+        init_centers = compute_centers(mat, labels, k)
         if on_orig:
             start_time = time.time()
-            cost, cluster_centers, labels = train_kmeans(mat, k, num_processes=num_processes)
+            cost, cluster_centers, labels = train_kmeans(mat, k, init_centers=init_centers, num_processes=num_processes)
             train_time = time.time() - start_time
             cost = compute_cost_labels(mat, labels, k)
             results['opt'][k] = {'time': train_time, 'cost': cost}

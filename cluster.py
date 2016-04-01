@@ -50,5 +50,15 @@ def compute_cost_labels(mat, labels, k=None):
 		cluster_centers.append(cluster_center)
 	return kmeans_objective(mat, cluster_centers, labels)
 
+def compute_centers(mat, labels, k=None):
+	if k is None:
+		k = len(np.unique(labels))
+	cluster_centers = []
+	for i in range(k):
+		inds = np.where(labels == i)
+		cluster_center = np.mean(mat[inds], axis=0)
+		cluster_centers.append(cluster_center)
+	return np.array(cluster_centers)
+
 if __name__ == "__main__":
 	pass 

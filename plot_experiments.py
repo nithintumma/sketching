@@ -363,7 +363,8 @@ def plot_kmeans(sketch_results_fname='experiments/kmeans/cifar/sketch_results.p'
     print results['sketch'][100].keys()
 
     #clusters = [5, 10, 15, 20]
-    clusters = [10, 20, 30, 40]
+    #clusters = [10, 20, 30, 40]
+    clusters = [2, 4, 8, 16, 32]
     sketch_sizes = [50, 100, 200]
     opt_data = []
     sketch_data = [[] for i in range(len(sketch_sizes))]
