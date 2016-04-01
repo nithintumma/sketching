@@ -551,10 +551,16 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     # sketch the transpose 
     mat = mat.T
     sketch_sizes = [50, 100, 200]
-    sketch_objs = [BatchPFDSketch(mat, l, l, 0.2, randomized=True) for l in sketch_sizes]
     sketches = []
-    for sk in sketch_objs:
-        sketches.append(sk.compute_sketch().T)
+    for l in sketch_sizes:
+        fname = 'test_matrices/sketches/sk_%d'%l
+        if os.path.exists(fname):
+            sketches.append(load_matrix(fname))
+        else:
+            sketch_o = BatchPFDSketch(mat, l, l, 0.2, randomized=True)
+            sketch_o.compute_sketch()
+            write_matrix(sketch_o.sketch.T, fname)
+            sketches.append(sketch_o.sketch.T)
     mat = mat.T
     #print sketche.shape
     print "Mat: ", mat.shape
@@ -579,6 +585,7 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
             start_time = time.time()
             cost, cluster_centers, labels = train_kmeans(mat, k, num_processes=num_processes)
             train_time = time.time() - start_time
+            cost = compute_cost_labels(mat, labels, k)
             results['opt'][k] = {'time': train_time, 'cost': cost}
     
     if on_orig:
