@@ -551,7 +551,7 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     # sketch the transpose 
     mat = mat.T
     #sketch_sizes = [10, 50, 100, 200]
-    sketch_sizes = [10, 15, 20, 50, 30]
+    sketch_sizes = [10, 15, 20, 30, 100]
     sketches = []
     for l in sketch_sizes:
         fname = 'test_matrices/sketches/sk_%d'%l
