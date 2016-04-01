@@ -550,7 +550,8 @@ def kmeans_experiment(on_sketch=True, on_orig=True):
     mat = load_matrix('data_batch_1')
     # sketch the transpose 
     mat = mat.T
-    sketch_sizes = [10, 50, 100, 200]
+    #sketch_sizes = [10, 50, 100, 200]
+    sketch_sizes = [10, 30, 50, 100]
     sketches = []
     for l in sketch_sizes:
         fname = 'test_matrices/sketches/sk_%d'%l
